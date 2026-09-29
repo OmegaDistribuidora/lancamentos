@@ -103,7 +103,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
     const endRef = `$${params.length}`;
     const range = `and l.data_pagamento between ${startRef}::date and ${endRef}::date`;
     const filters = launchFilters.join(' ');
-    const totalBudget = `(select coalesce(sum(coalesce(o.valor,100)),0)::float8
+    const totalBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
       from contas c cross join sedes s
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
       left join lateral (
@@ -112,7 +112,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
         order by historico.competencia desc limit 1
       ) o on true
       where c.ativo and s.ativo ${budgetSedeFilter})`;
-    const groupBudget = `(select coalesce(sum(coalesce(o.valor,100)),0)::float8
+    const groupBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
       from contas c cross join sedes s
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
       left join lateral (

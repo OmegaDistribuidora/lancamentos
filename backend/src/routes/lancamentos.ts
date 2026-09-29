@@ -88,6 +88,11 @@ export async function registerLancamentoRoutes(app: FastifyInstance): Promise<vo
     if (q.busca?.trim()) { params.push(`%${q.busca.trim()}%`); where.push(`(l.observacao ilike $${params.length} or c.nome ilike $${params.length} or u.nome_exibicao ilike $${params.length})`); }
     if (q.sedeId) { params.push(positiveId(q.sedeId, 'Sede')); where.push(`l.sede_id=$${params.length}`); }
     if (q.grupoContaId) { params.push(positiveId(q.grupoContaId, 'Grupo')); where.push(`l.grupo_conta_id=$${params.length}`); }
+    if (q.contaIds) {
+      const contaIds = [...new Set(q.contaIds.split(',').filter(Boolean).map((item) => positiveId(item, 'Conta')))];
+      if (contaIds.length > 257) badRequest('Quantidade de contas inválida.');
+      if (contaIds.length) { params.push(contaIds); where.push(`l.conta_id=any($${params.length}::bigint[])`); }
+    }
     if (q.colaboradorId && isPrivileged(user)) { params.push(positiveId(q.colaboradorId, 'Colaborador')); where.push(`l.colaborador_id=$${params.length}`); }
     const clause = where.join(' and ');
     const summary = await pool.query(`

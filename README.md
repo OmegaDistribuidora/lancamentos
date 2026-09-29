@@ -51,15 +51,15 @@ npm run db:migrate
 - 32 grupos e 257 contas fixos, importados de `filial.dgrupoconta` e `filial.dcontacontabil`;
 - busca por código ou nome nos seletores de grupo e conta, com contas filtradas pelo grupo escolhido.
 - 11 sedes fixas da empresa, incluindo `Realleza` com a grafia correta;
-- orçamento editável por conta, sede e competência, iniciado em R$ 100,00;
+- orçamento editável por conta, sede e competência, iniciado em R$ 0,00;
 - cada orçamento permanece vigente nos meses seguintes até que um novo valor seja informado;
 - orçamento e despesa de cada grupo calculados pela soma de suas contas;
 - dashboard iniciado no mês atual e, para perfis gestores, com todas as sedes agregadas;
 - gráfico com agrupamento semanal no mês e filtro adaptativo para períodos maiores;
-- auditoria exclusiva do administrador;
+- auditoria visível para administrador, gerência administrativa e diretoria;
 - orçamentos visíveis e editáveis por administrador, gerência administrativa e diretoria;
 - usuários comuns visualizam somente os próprios lançamentos e não recebem dados de orçamento;
-- filtros rápidos de período e colaborador, com exportação integral do resultado filtrado.
+- filtros rápidos de período, sede, colaborador, grupo e contas, com exportação integral do resultado filtrado.
 
 ## SSO do Ecossistema Ômega
 

@@ -29,7 +29,7 @@ create table if not exists contas (
   codigo varchar(30) not null unique,
   grupo_conta_id bigint not null references grupos_contas(id),
   nome varchar(180) not null,
-  orcamento numeric(14,2) not null default 100.00 check (orcamento >= 0),
+  orcamento numeric(14,2) not null default 0.00 check (orcamento >= 0),
   ativo boolean not null default true,
   criado_em timestamptz not null default now(),
   unique (grupo_conta_id, nome)
@@ -52,7 +52,7 @@ create table if not exists orcamentos_contas (
   conta_id bigint not null references contas(id) on delete cascade,
   sede_id bigint not null references sedes(id) on delete cascade,
   competencia date not null check (competencia = date_trunc('month', competencia)::date),
-  valor numeric(14,2) not null default 100.00 check (valor >= 0),
+  valor numeric(14,2) not null default 0.00 check (valor >= 0),
   atualizado_por bigint references usuarios(id),
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now(),

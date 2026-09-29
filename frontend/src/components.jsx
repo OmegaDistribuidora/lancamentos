@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, LoaderCircle, AlertTriangle } from 'lucide-react'
+import { X, LoaderCircle, AlertTriangle, Check, ChevronDown } from 'lucide-react'
 
 const searchableLabel = (option) => option ? `${option.codigo ? `${option.codigo} — ` : ''}${option.nome}` : ''
 
@@ -35,6 +35,29 @@ export function Toast({ toast, onClose }) {
     return () => clearTimeout(id)
   }, [toast, onClose])
   return toast ? <div className={`toast ${toast.type || 'success'}`}><span>{toast.message}</span><button onClick={onClose}><X size={16}/></button></div> : null
+}
+
+export function FilterSelect({ options, value, onChange, placeholder = 'Todos', ariaLabel }) {
+  const [open, setOpen] = useState(false)
+  const root = useRef(null)
+  const selected = options.find((option) => String(option.value) === String(value))
+  useEffect(() => {
+    if (!open) return undefined
+    const close = (event) => { if (!root.current?.contains(event.target)) setOpen(false) }
+    const escape = (event) => { if (event.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', escape)
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', escape) }
+  }, [open])
+  return <div className={`filter-select ${open ? 'open' : ''}`} ref={root}>
+    <button type="button" className="filter-select-trigger" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}><span>{selected?.label || placeholder}</span><ChevronDown size={16}/></button>
+    {open && <div className="filter-select-options" role="listbox">
+      {options.map((option) => {
+        const active = String(option.value) === String(value)
+        return <button type="button" role="option" aria-selected={active} className={active ? 'active' : ''} key={String(option.value)} onClick={() => { onChange(option.value); setOpen(false) }}><span>{option.label}</span>{active && <Check size={15}/>}</button>
+      })}
+    </div>}
+  </div>
 }
 
 export function SearchableSelect({ options, value, onChange, placeholder = 'Selecione', disabled = false }) {

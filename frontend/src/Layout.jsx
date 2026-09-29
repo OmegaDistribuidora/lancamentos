@@ -6,7 +6,7 @@ const items = [
   { id: 'dashboard', label: 'Visão geral', icon: LayoutDashboard },
   { id: 'lancamentos', label: 'Lançamentos', icon: ClipboardList },
   { id: 'orcamentos', label: 'Orçamentos', icon: Landmark, manager: true },
-  { id: 'auditoria', label: 'Auditoria', icon: FileClock, admin: true },
+  { id: 'auditoria', label: 'Auditoria', icon: FileClock, manager: true },
   { id: 'usuarios', label: 'Usuários', icon: Users, admin: true },
 ]
 

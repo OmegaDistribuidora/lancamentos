@@ -55,7 +55,7 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
     const [grupos, contas] = await Promise.all([
       pool.query(`
         select g.id,g.codigo,g.nome,g.cor,count(c.id)::int as "quantidadeContas",
-          coalesce(sum(coalesce(o.valor,100)) filter(where c.ativo),0)::float8 as orcamento
+          coalesce(sum(coalesce(o.valor,0)) filter(where c.ativo),0)::float8 as orcamento
         from grupos_contas g
         left join contas c on c.grupo_conta_id=g.id and c.ativo
         left join lateral (
@@ -67,7 +67,7 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
         where g.ativo group by g.id order by g.codigo`, [sedeId, month]),
       pool.query(`
         select c.id,c.codigo,c.nome,c.grupo_conta_id as "grupoContaId",g.nome as "grupoConta",
-          coalesce(o.valor,100)::float8 as orcamento,
+          coalesce(o.valor,0)::float8 as orcamento,
           to_char(o.competencia,'YYYY-MM') as "competenciaOrigem",
           (o.competencia=$2::date) as "definidoNaCompetencia"
         from contas c join grupos_contas g on g.id=c.grupo_conta_id

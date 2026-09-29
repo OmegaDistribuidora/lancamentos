@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import { isAdmin } from '../auth.js';
+import { isPrivileged } from '../auth.js';
 import { pool } from '../db/pool.js';
 import { dateOnly, forbidden, positiveId } from '../http.js';
 
 export async function registerAuditRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/auditoria', async (request) => {
-    if (!isAdmin(request.authUser!)) forbidden('Auditoria disponível apenas para administradores.');
+    if (!isPrivileged(request.authUser!)) forbidden('Auditoria disponível apenas para perfis gestores.');
     const q = request.query as Record<string, string | undefined>;
     const params: unknown[] = [];
     const where: string[] = [];

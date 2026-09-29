@@ -84,6 +84,14 @@ export async function migrate(): Promise<void> {
       `);
       await client.query(`insert into migracoes (versao) values ('004_orcamentos_por_sede_competencia')`);
     }
+    const zeroBudgetMigration = await client.query(`select 1 from migracoes where versao='006_zerar_orcamentos_iniciais'`);
+    if (!zeroBudgetMigration.rowCount) {
+      await client.query(`alter table contas alter column orcamento set default 0.00`);
+      await client.query(`alter table orcamentos_contas alter column valor set default 0.00`);
+      await client.query(`update contas set orcamento=0`);
+      await client.query(`update orcamentos_contas set valor=0, atualizado_em=now()`);
+      await client.query(`insert into migracoes (versao) values ('006_zerar_orcamentos_iniciais')`);
+    }
     await client.query(
       `insert into usuarios (nome_exibicao, login, senha_hash, perfil)
        values ($1, $2, $3, 'ADMIN') on conflict (login) do nothing`,

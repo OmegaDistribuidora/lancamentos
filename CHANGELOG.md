@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 — 2026-09-29
+
+- zeramento único dos orçamentos existentes e novo valor padrão em R$ 0,00;
+- auditoria liberada para administração, gerência administrativa e diretoria;
+- filtro combinado de grupo e contas, com seleção individual ou múltipla;
+- menus dos filtros de lançamentos redesenhados no estilo visual do sistema.
+
 ## 1.1.0 — 2026-09-29
 
 - centros de custo vinculados individualmente às sedes, com seleção dependente no lançamento;
