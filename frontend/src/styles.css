@@ -104,6 +104,10 @@ label small { font-weight:400; color:var(--muted); }
 .dashboard-heading-actions { display:flex; align-items:flex-end; gap:10px; }
 .dashboard-sede-select,.budget-filters label { min-width:190px; gap:5px; color:#647188; font-size:10px; font-weight:700; }
 .dashboard-sede-select select,.budget-filters select,.budget-filters input { height:39px; background:#fff; }
+.cost-centers-by-site { display:grid; gap:16px; width:100%; }
+.cost-center-site { display:grid; gap:8px; padding:12px; border:1px solid #e4eaf2; border-radius:10px; background:#f8fafc; }
+.cost-center-site > strong { color:#334155; font-size:12px; }
+.fieldset-hint { margin:4px 0; color:#718096; font-size:12px; }
 .heading-actions,.export-actions { display:flex; align-items:center; gap:9px; }
 .metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:15px; }
 .metric-card { min-width:0; padding:20px; display:flex; gap:15px; align-items:flex-start; background:#fff; border:1px solid #e9edf4; border-radius:14px; box-shadow:0 5px 16px #17365b0a; }

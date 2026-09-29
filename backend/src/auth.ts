@@ -52,7 +52,7 @@ export function isAdmin(user: AuthUser): boolean {
 async function profile(user: AuthUser) {
   const [sedes, centros] = await Promise.all([
     pool.query(`select s.id, s.nome from sedes s join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and s.ativo order by s.nome`, [user.id]),
-    pool.query(`select c.id, c.nome from centros_custo c join usuario_centros_custo uc on uc.centro_custo_id=c.id where uc.usuario_id=$1 and c.ativo order by c.nome`, [user.id]),
+    pool.query(`select c.id, c.nome, c.sede_id as "sedeId" from centros_custo c join usuario_centros_custo uc on uc.centro_custo_id=c.id where uc.usuario_id=$1 and c.ativo order by c.sede_id, c.nome`, [user.id]),
   ]);
   return { ...user, podeVerTodos: isPrivileged(user), podeAdministrar: isAdmin(user), sedes: sedes.rows, centrosCusto: centros.rows };
 }

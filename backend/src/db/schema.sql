@@ -7,9 +7,12 @@ create table if not exists sedes (
 
 create table if not exists centros_custo (
   id bigserial primary key,
-  nome varchar(160) not null unique,
+  sede_id bigint not null references sedes(id) on delete cascade,
+  nome varchar(160) not null,
   ativo boolean not null default true,
-  criado_em timestamptz not null default now()
+  criado_em timestamptz not null default now(),
+  constraint uq_centros_custo_sede_nome unique (sede_id, nome),
+  constraint uq_centros_custo_id_sede unique (id, sede_id)
 );
 
 create table if not exists grupos_contas (
@@ -78,7 +81,7 @@ create table if not exists lancamentos (
   colaborador_id bigint not null references usuarios(id),
   data_pagamento date not null,
   sede_id bigint not null references sedes(id),
-  centro_custo_id bigint not null references centros_custo(id),
+  centro_custo_id bigint not null,
   grupo_conta_id bigint not null references grupos_contas(id),
   conta_id bigint not null references contas(id),
   observacao text not null default '',
@@ -86,7 +89,9 @@ create table if not exists lancamentos (
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now(),
   excluido_em timestamptz,
-  excluido_por bigint references usuarios(id)
+  excluido_por bigint references usuarios(id),
+  constraint fk_lancamentos_centro_sede foreign key (centro_custo_id, sede_id)
+    references centros_custo(id, sede_id)
 );
 
 create index if not exists idx_lancamentos_colaborador on lancamentos(colaborador_id, criado_em desc);

@@ -9,7 +9,7 @@ function Card({ icon: Icon, tone, label, value, detail }) {
   return <article className="metric-card"><div className={`metric-icon ${tone}`}><Icon/></div><div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div></article>
 }
 
-export default function DashboardPage({ user, catalogs, onNew, onSeeAll }) {
+export default function DashboardPage({ user, catalogs, refreshKey, onNew, onSeeAll }) {
   const [filter, setFilter] = useState({ periodo: 'mes_atual', inicio: '', fim: '', sedeId: '' })
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -19,7 +19,7 @@ export default function DashboardPage({ user, catalogs, onNew, onSeeAll }) {
     setError('')
     try { setData(await api(`/api/dashboard${qs({ periodo: filter.periodo, ...range, sedeId: user.podeVerTodos ? filter.sedeId : '' })}`)) } catch (err) { setError(err.message) }
   }, [filter.periodo, filter.sedeId, range, user.podeVerTodos])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { void load() }, [load, refreshKey])
 
   if (!data && !error) return <Loading label="Montando sua visão geral..."/>
   if (error) return <div className="state-error"><p>{error}</p><button className="secondary" onClick={load}><RefreshCw size={17}/> Tentar novamente</button></div>

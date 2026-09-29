@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CheckCheck, Pencil, Plus, UserRound, Users } from 'lucide-react'
 import { api } from './api.js'
 import { profileLabel } from './format.js'
@@ -14,6 +14,22 @@ function UserModal({ item, catalogs, onClose, onSaved }) {
   const toggleAll = (field, options) => setForm((current) => {
     const all = options.every((option) => current[field].includes(String(option.id)))
     return { ...current, [field]: all ? [] : options.map((option) => String(option.id)) }
+  })
+  const selectedSedes = useMemo(() => catalogs.sedes.filter((sede) => form.sedeIds.includes(String(sede.id))), [catalogs.sedes, form.sedeIds])
+  const availableCenters = useMemo(() => catalogs.centrosCusto.filter((centro) => form.sedeIds.includes(String(centro.sedeId))), [catalogs.centrosCusto, form.sedeIds])
+  const toggleSede = (id) => setForm((current) => {
+    const selected = current.sedeIds.includes(String(id))
+    return {
+      ...current,
+      sedeIds: selected ? current.sedeIds.filter((value) => value !== String(id)) : [...current.sedeIds, String(id)],
+      centroCustoIds: selected
+        ? current.centroCustoIds.filter((centerId) => !catalogs.centrosCusto.some((centro) => String(centro.id) === centerId && String(centro.sedeId) === String(id)))
+        : current.centroCustoIds,
+    }
+  })
+  const toggleAllSedes = () => setForm((current) => {
+    const all = catalogs.sedes.every((sede) => current.sedeIds.includes(String(sede.id)))
+    return { ...current, sedeIds: all ? [] : catalogs.sedes.map((sede) => String(sede.id)), centroCustoIds: all ? [] : current.centroCustoIds }
   })
 
   async function submit(event) {
@@ -31,8 +47,8 @@ function UserModal({ item, catalogs, onClose, onSaved }) {
         <label>Login / identidade SSO<input required value={form.login} onChange={(event) => setForm({ ...form, login: event.target.value.toLowerCase() })} placeholder="nome.sobrenome"/></label>
         <label>Perfil<select value={form.perfil} onChange={(event) => setForm({ ...form, perfil: event.target.value })}><option value="USUARIO">Usuário</option><option value="GERENTE_ADMINISTRATIVO">Gerente administrativo</option><option value="DIRETORIA">Diretoria</option><option value="ADMIN">Administrador</option></select></label>
         <label>Senha local <small>{item ? 'Deixe em branco para manter' : 'Opcional para usuários que entrarão apenas via SSO'}</small><input type="password" minLength={8} value={form.senha} onChange={(event) => setForm({ ...form, senha: event.target.value })} placeholder="Mínimo 8 caracteres"/></label>
-        <fieldset className="full"><legend><span>Sedes liberadas</span><button type="button" className="select-all" onClick={() => toggleAll('sedeIds', catalogs.sedes)}><CheckCheck size={14}/>{catalogs.sedes.every((row) => form.sedeIds.includes(String(row.id))) ? 'Limpar seleção' : 'Selecionar todas'}</button></legend><div className="check-grid">{catalogs.sedes.map((row) => <label className="check" key={row.id}><input type="checkbox" checked={form.sedeIds.includes(String(row.id))} onChange={() => toggle('sedeIds', row.id)}/><span>{row.nome}</span></label>)}</div></fieldset>
-        <fieldset className="full"><legend><span>Centros de custo liberados</span><button type="button" className="select-all" onClick={() => toggleAll('centroCustoIds', catalogs.centrosCusto)}><CheckCheck size={14}/>{catalogs.centrosCusto.every((row) => form.centroCustoIds.includes(String(row.id))) ? 'Limpar seleção' : 'Selecionar todos'}</button></legend><div className="check-grid">{catalogs.centrosCusto.map((row) => <label className="check" key={row.id}><input type="checkbox" checked={form.centroCustoIds.includes(String(row.id))} onChange={() => toggle('centroCustoIds', row.id)}/><span>{row.nome}</span></label>)}</div></fieldset>
+        <fieldset className="full"><legend><span>Sedes liberadas</span><button type="button" className="select-all" onClick={toggleAllSedes}><CheckCheck size={14}/>{catalogs.sedes.every((row) => form.sedeIds.includes(String(row.id))) ? 'Limpar seleção' : 'Selecionar todas'}</button></legend><div className="check-grid">{catalogs.sedes.map((row) => <label className="check" key={row.id}><input type="checkbox" checked={form.sedeIds.includes(String(row.id))} onChange={() => toggleSede(row.id)}/><span>{row.nome}</span></label>)}</div></fieldset>
+        <fieldset className="full"><legend><span>Centros de custo liberados por sede</span><button type="button" className="select-all" disabled={!availableCenters.length} onClick={() => toggleAll('centroCustoIds', availableCenters)}><CheckCheck size={14}/>{availableCenters.length > 0 && availableCenters.every((row) => form.centroCustoIds.includes(String(row.id))) ? 'Limpar seleção' : 'Selecionar todos'}</button></legend>{selectedSedes.length ? <div className="cost-centers-by-site">{selectedSedes.map((sede) => { const centers = catalogs.centrosCusto.filter((centro) => String(centro.sedeId) === String(sede.id)); return <div className="cost-center-site" key={sede.id}><strong>{sede.nome}</strong><div className="check-grid">{centers.map((row) => <label className="check" key={row.id}><input type="checkbox" checked={form.centroCustoIds.includes(String(row.id))} onChange={() => toggle('centroCustoIds', row.id)}/><span>{row.nome}</span></label>)}</div></div> })}</div> : <p className="fieldset-hint">Selecione ao menos uma sede para liberar seus centros de custo.</p>}</fieldset>
         {item && <label className="check full"><input type="checkbox" checked={form.ativo} onChange={(event) => setForm({ ...form, ativo: event.target.checked })}/><span>Usuário ativo</span></label>}
         {error && <div className="form-error full">{error}</div>}
       </div>

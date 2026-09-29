@@ -57,9 +57,9 @@ export default function App() {
   return <>
     <Layout user={user} view={view} onView={navigate} onLogout={logout} onNew={newEntry}>
       <Suspense fallback={<Loading label="Carregando página..."/>}>
-        {view === 'dashboard' && <DashboardPage user={user} catalogs={catalogs} onNew={newEntry} onSeeAll={() => navigate('lancamentos')}/>}
+        {view === 'dashboard' && <DashboardPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onSeeAll={() => navigate('lancamentos')}/>}
         {view === 'lancamentos' && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={setModal} notify={notify}/>}
-        {view === 'orcamentos' && user.podeVerTodos && <CadastrosPage notify={notify}/>}
+        {view === 'orcamentos' && user.podeVerTodos && <CadastrosPage notify={notify} onChanged={() => setRefreshKey((key) => key + 1)}/>}
         {view === 'auditoria' && user.podeAdministrar && <AuditoriaPage notify={notify}/>}
         {view === 'usuarios' && user.podeAdministrar && <UsuariosPage catalogs={catalogs} notify={notify}/>}
       </Suspense>

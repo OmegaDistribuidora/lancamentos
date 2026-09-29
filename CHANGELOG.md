@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — 2026-09-29
+
+- centros de custo vinculados individualmente às sedes, com seleção dependente no lançamento;
+- correção do nome da sede `Realleza` e migração segura dos lançamentos existentes;
+- bloqueio de datas de pagamento futuras no frontend e na API;
+- atualização imediata dos indicadores após salvar lançamentos ou orçamentos.
+
 ## 1.0.1 — 2026-09-29
 
 - liberação segura dos domínios `*.up.railway.app` no servidor de preview do frontend;

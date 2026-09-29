@@ -5,6 +5,14 @@ import { isAdmin, isPrivileged } from '../auth.js';
 import { badRequest, dateOnly, forbidden, money, notFound, optionalText, positiveId } from '../http.js';
 import type { AuthUser } from '../types.js';
 
+function hojeFortaleza(): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Fortaleza', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date());
+  const get = (type: string) => parts.find((part) => part.type === type)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
 const SELECT = `
   select l.numero_lancamento as "numeroLancamento", l.data_lancamento::text as "dataLancamento",
     to_char(l.hora_lancamento, 'HH24:MI') as hora, u.nome_exibicao as colaborador,
@@ -36,6 +44,7 @@ async function audit(client: PoolClient, user: AuthUser, numero: number, acao: s
 
 async function validateAccess(client: PoolClient, user: AuthUser, payload: Record<string, unknown>) {
   const dataPagamento = dateOnly(payload.dataPagamento, 'Data de pagamento');
+  if (dataPagamento > hojeFortaleza()) badRequest('A data de pagamento não pode ser futura.');
   const sedeId = positiveId(payload.sedeId, 'Sede');
   const centroCustoId = positiveId(payload.centroCustoId, 'Centro de custo');
   const grupoContaId = positiveId(payload.grupoContaId, 'Grupo de contas');
@@ -43,12 +52,16 @@ async function validateAccess(client: PoolClient, user: AuthUser, payload: Recor
   const allowed = await client.query(
     `select
       exists(select 1 from usuario_sedes where usuario_id=$1 and sede_id=$2) as sede,
-      exists(select 1 from usuario_centros_custo where usuario_id=$1 and centro_custo_id=$3) as centro,
+      exists(select 1 from sedes where id=$2 and ativo) as "sedeExiste",
+      exists(select 1 from centros_custo where id=$3 and sede_id=$2 and ativo) as "centroDaSede",
+      exists(select 1 from usuario_centros_custo where usuario_id=$1 and centro_custo_id=$3) as "centroPermitido",
       exists(select 1 from contas where id=$4 and grupo_conta_id=$5 and ativo) as conta`,
     [user.id, sedeId, centroCustoId, contaId, grupoContaId],
   );
+  if (!allowed.rows[0]?.sedeExiste) badRequest('A sede selecionada não existe ou está inativa.');
   if (!isAdmin(user) && !allowed.rows[0]?.sede) badRequest('A sede não está liberada para este usuário.');
-  if (!isAdmin(user) && !allowed.rows[0]?.centro) badRequest('O centro de custo não está liberado para este usuário.');
+  if (!allowed.rows[0]?.centroDaSede) badRequest('O centro de custo não pertence à sede selecionada.');
+  if (!isAdmin(user) && !allowed.rows[0]?.centroPermitido) badRequest('O centro de custo não está liberado para este usuário.');
   if (!allowed.rows[0]?.conta) badRequest('A conta não pertence ao grupo selecionado.');
   return { dataPagamento, sedeId, centroCustoId, grupoContaId, contaId, observacao: optionalText(payload.observacao), valor: money(payload.valor) };
 }

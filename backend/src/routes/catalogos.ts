@@ -27,8 +27,14 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
         ? pool.query(`select id, nome from sedes where ativo order by nome`)
         : pool.query(`select s.id, s.nome from sedes s join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and s.ativo order by s.nome`, [user.id]),
       admin
-        ? pool.query(`select id, nome from centros_custo where ativo order by nome`)
-        : pool.query(`select c.id, c.nome from centros_custo c join usuario_centros_custo uc on uc.centro_custo_id=c.id where uc.usuario_id=$1 and c.ativo order by c.nome`, [user.id]),
+        ? pool.query(`select id, nome, sede_id as "sedeId" from centros_custo where ativo order by sede_id, nome`)
+        : pool.query(`
+            select c.id, c.nome, c.sede_id as "sedeId"
+            from centros_custo c
+            join usuario_centros_custo uc on uc.centro_custo_id=c.id
+            join usuario_sedes us on us.sede_id=c.sede_id and us.usuario_id=uc.usuario_id
+            where uc.usuario_id=$1 and c.ativo order by c.sede_id, c.nome
+          `, [user.id]),
       pool.query(`select id, codigo, nome, cor from grupos_contas where ativo order by codigo`),
       pool.query(`select id, codigo, grupo_conta_id as "grupoContaId", nome from contas where ativo order by codigo`),
       isPrivileged(user)
@@ -80,7 +86,7 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
     if (!isAdmin(request.authUser!)) forbidden();
     const [sedes, centros, grupos, contas] = await Promise.all([
       pool.query('select id, nome, ativo from sedes where ativo order by nome'),
-      pool.query('select id, nome, ativo from centros_custo order by nome'),
+      pool.query('select id, nome, sede_id as "sedeId", ativo from centros_custo order by sede_id, nome'),
       pool.query(`select g.id, g.codigo, g.nome, g.cor, g.ativo, coalesce(sum(c.orcamento) filter(where c.ativo),0)::float8 as orcamento
         from grupos_contas g left join contas c on c.grupo_conta_id=g.id where g.codigo is not null group by g.id order by g.codigo`),
       pool.query('select c.id, c.codigo, c.nome, c.grupo_conta_id as "grupoContaId", g.nome as "grupoConta", c.orcamento::float8 as orcamento, c.ativo from contas c join grupos_contas g on g.id=c.grupo_conta_id where c.codigo is not null order by g.codigo,c.codigo'),

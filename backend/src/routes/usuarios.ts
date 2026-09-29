@@ -23,6 +23,13 @@ function ids(value: unknown): number[] {
 }
 
 async function saveAccess(client: import('pg').PoolClient, userId: number, sedes: number[], centros: number[]) {
+  const valid = await client.query(`
+    select
+      (select count(*)::int from sedes where id=any($1::bigint[]) and ativo) as sedes,
+      (select count(*)::int from centros_custo where id=any($2::bigint[]) and sede_id=any($1::bigint[]) and ativo) as centros
+  `, [sedes, centros]);
+  if (Number(valid.rows[0]?.sedes) !== sedes.length) badRequest('Uma das sedes selecionadas não existe ou está inativa.');
+  if (Number(valid.rows[0]?.centros) !== centros.length) badRequest('Cada centro de custo selecionado deve pertencer a uma das sedes liberadas.');
   await client.query('delete from usuario_sedes where usuario_id=$1', [userId]);
   await client.query('delete from usuario_centros_custo where usuario_id=$1', [userId]);
   for (const id of sedes) await client.query('insert into usuario_sedes (usuario_id,sede_id) values ($1,$2)', [userId, id]);

@@ -9,6 +9,24 @@ function hashPassword(password: string): string {
   return `scrypt$${salt}$${scryptSync(password, salt, 64).toString('hex')}`;
 }
 
+const centrosPorSede: Record<string, string[]> = {
+  'Ômega Barroso': ['GERAL', 'OFICINA', 'CANTINA', 'COMERCIAL', 'FINANCEIRO', 'LOGÍSTICA'],
+  'Ômega Cariri': ['GERAL', 'LOGÍSTICA', 'COMERCIAL'],
+  'Ômega Matriz': ['GERAL', 'MARCENARIA', 'ESCRITÓRIO DE LICITAÇÃO', 'METALÚRGICA', 'ALIMENTAÇÃO PRONTA'],
+  'Du Chico': ['GERAL', 'FRENTE DE LOJA', 'ADMINISTRATIVO'],
+  Orion: ['GERAL'],
+  'Fco Jose': ['GERAL'],
+  J2A: ['GERAL'],
+  Realleza: ['GERAL'],
+  Galileia: ['GERAL'],
+  Chiara: ['GERAL'],
+  Rizo: ['GERAL'],
+};
+
+function centroNormalizado(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleUpperCase('pt-BR');
+}
+
 export async function migrate(): Promise<void> {
   const schemaPath = fileURLToPath(new URL('./schema.sql', import.meta.url));
   const catalogsPath = fileURLToPath(new URL('./catalogos-fixos.json', import.meta.url));
@@ -71,20 +89,89 @@ export async function migrate(): Promise<void> {
        values ($1, $2, $3, 'ADMIN') on conflict (login) do nothing`,
       [config.admin.nome, config.admin.login, hashPassword(config.admin.password)],
     );
-    const sedesFixas = ['Ômega Barroso', 'Ômega Cariri', 'Ômega Matriz', 'Du Chico', 'Orion', 'Fco Jose', 'J2A', 'Reallea', 'Galileia', 'Chiara', 'Rizo'];
+    await client.query(`update sedes set nome='Realleza' where nome='Reallea' and not exists (select 1 from sedes where nome='Realleza')`);
+    const sedesFixas = ['Ômega Barroso', 'Ômega Cariri', 'Ômega Matriz', 'Du Chico', 'Orion', 'Fco Jose', 'J2A', 'Realleza', 'Galileia', 'Chiara', 'Rizo'];
     await client.query(`
       insert into sedes (nome, ativo)
       select nome, true from unnest($1::text[]) nome
       on conflict (nome) do update set ativo=true
     `, [sedesFixas]);
     await client.query(`update sedes set ativo=false where not (nome=any($1::text[]))`, [sedesFixas]);
-    const centrosFixos = ['Administrativo', 'Comercial', 'Logística'];
+    const costCenterMigration = await client.query(`select 1 from migracoes where versao='005_centros_custo_por_sede'`);
+    if (!costCenterMigration.rowCount) {
+      await client.query(`alter table centros_custo add column if not exists sede_id bigint references sedes(id) on delete cascade`);
+      await client.query(`alter table centros_custo drop constraint if exists centros_custo_nome_key`);
+      await client.query(`create unique index if not exists uq_centros_custo_sede_nome on centros_custo(sede_id, nome)`);
+
+      const pares = Object.entries(centrosPorSede).flatMap(([sede, centros]) => centros.map((nome) => ({ sede, nome })));
+      await client.query(`
+        insert into centros_custo (sede_id, nome, ativo)
+        select s.id, x.nome, true
+        from jsonb_to_recordset($1::jsonb) as x(sede text, nome text)
+        join sedes s on s.nome=x.sede
+        on conflict (sede_id, nome) do update set ativo=true
+      `, [JSON.stringify(pares)]);
+
+      const centrosAtivos = await client.query<{ id: number; sedeId: number; nome: string }>(`
+        select id, sede_id as "sedeId", nome from centros_custo where sede_id is not null and ativo
+      `);
+      const centrosLegados = await client.query<{ id: number; nome: string }>(`
+        select id, nome from centros_custo where sede_id is null
+      `);
+      const lancamentosLegados = await client.query<{ sedeId: number; centroCustoId: number }>(`
+        select distinct sede_id as "sedeId", centro_custo_id as "centroCustoId"
+        from lancamentos where centro_custo_id = any($1::bigint[])
+      `, [centrosLegados.rows.map((item) => item.id)]);
+      const nomeLegado = new Map(centrosLegados.rows.map((item) => [Number(item.id), item.nome]));
+      for (const item of lancamentosLegados.rows) {
+        const sedeId = Number(item.sedeId);
+        const antigo = nomeLegado.get(Number(item.centroCustoId)) || '';
+        const daSede = centrosAtivos.rows.filter((centro) => Number(centro.sedeId) === sedeId);
+        const equivalente = daSede.find((centro) => centroNormalizado(centro.nome) === centroNormalizado(antigo));
+        const geral = daSede.find((centro) => centroNormalizado(centro.nome) === 'GERAL');
+        const destino = equivalente || geral;
+        if (!destino) throw new Error(`Centro de custo GERAL não encontrado para a sede ${sedeId}.`);
+        await client.query(`update lancamentos set centro_custo_id=$1 where sede_id=$2 and centro_custo_id=$3`, [destino.id, sedeId, item.centroCustoId]);
+      }
+
+      await client.query(`delete from usuario_centros_custo`);
+      await client.query(`
+        insert into usuario_centros_custo (usuario_id, centro_custo_id)
+        select us.usuario_id, c.id
+        from usuario_sedes us join centros_custo c on c.sede_id=us.sede_id and c.ativo
+        on conflict do nothing
+      `);
+      await client.query(`delete from centros_custo where sede_id is null`);
+      await client.query(`alter table centros_custo alter column sede_id set not null`);
+      await client.query(`
+        do $$ begin
+          if not exists (select 1 from pg_constraint where conname='uq_centros_custo_id_sede') then
+            alter table centros_custo add constraint uq_centros_custo_id_sede unique (id, sede_id);
+          end if;
+          if not exists (select 1 from pg_constraint where conname='fk_lancamentos_centro_sede') then
+            alter table lancamentos add constraint fk_lancamentos_centro_sede
+              foreign key (centro_custo_id, sede_id) references centros_custo(id, sede_id);
+          end if;
+        end $$
+      `);
+      await client.query(`insert into migracoes (versao) values ('005_centros_custo_por_sede')`);
+    }
+    const paresCentros = Object.entries(centrosPorSede).flatMap(([sede, centros]) => centros.map((nome) => ({ sede, nome })));
     await client.query(`
-      insert into centros_custo (nome, ativo)
-      select nome, true from unnest($1::text[]) nome
-      on conflict (nome) do update set ativo=true
-    `, [centrosFixos]);
-    await client.query(`update centros_custo set ativo=false where not (nome=any($1::text[]))`, [centrosFixos]);
+      insert into centros_custo (sede_id, nome, ativo)
+      select s.id, x.nome, true
+      from jsonb_to_recordset($1::jsonb) as x(sede text, nome text)
+      join sedes s on s.nome=x.sede
+      on conflict (sede_id, nome) do update set ativo=true
+    `, [JSON.stringify(paresCentros)]);
+    await client.query(`
+      update centros_custo c set ativo=false
+      where not exists (
+        select 1 from jsonb_to_recordset($1::jsonb) as x(sede text, nome text)
+        join sedes s on s.nome=x.sede
+        where s.id=c.sede_id and x.nome=c.nome
+      )
+    `, [JSON.stringify(paresCentros)]);
     await client.query(`
       insert into grupos_contas (codigo, nome, cor, ativo)
       select x.codigo, x.nome, x.cor, true
@@ -109,7 +196,11 @@ export async function migrate(): Promise<void> {
     `, [config.admin.login]);
     await client.query(`
       insert into usuario_centros_custo (usuario_id, centro_custo_id)
-      select u.id, c.id from usuarios u cross join centros_custo c where u.login = $1
+      select u.id, c.id
+      from usuarios u
+      join usuario_sedes us on us.usuario_id=u.id
+      join centros_custo c on c.sede_id=us.sede_id and c.ativo
+      where u.login = $1
       on conflict do nothing
     `, [config.admin.login]);
     await client.query('commit');

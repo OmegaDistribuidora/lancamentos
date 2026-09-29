@@ -37,7 +37,8 @@ npm run db:migrate
 - número sequencial automático;
 - data e hora do lançamento geradas no servidor no fuso de Fortaleza;
 - colaborador derivado da sessão, nunca do formulário;
-- data de pagamento preenchida inicialmente com hoje e editável;
+- data de pagamento preenchida inicialmente com hoje, editável sem permitir datas futuras;
+- cada centro de custo pertence a uma sede e o seletor mostra somente os centros da sede escolhida;
 - sede e centro de custo limitados às permissões do usuário;
 - conta validada contra o grupo de contas escolhido;
 - valor positivo com duas casas decimais;
@@ -49,7 +50,7 @@ npm run db:migrate
 - gestão administrativa de usuários, perfis, sedes e centros de custo;
 - 32 grupos e 257 contas fixos, importados de `filial.dgrupoconta` e `filial.dcontacontabil`;
 - busca por código ou nome nos seletores de grupo e conta, com contas filtradas pelo grupo escolhido.
-- 11 sedes fixas da empresa;
+- 11 sedes fixas da empresa, incluindo `Realleza` com a grafia correta;
 - orçamento editável por conta, sede e competência, iniciado em R$ 100,00;
 - cada orçamento permanece vigente nos meses seguintes até que um novo valor seja informado;
 - orçamento e despesa de cada grupo calculados pela soma de suas contas;

@@ -9,6 +9,7 @@ function BudgetRow({ item, onSave }) {
   const [saving, setSaving] = useState(false)
   const sourceMonth = item.competenciaOrigem ? `${item.competenciaOrigem.slice(5, 7)}/${item.competenciaOrigem.slice(0, 4)}` : ''
   const origin = item.definidoNaCompetencia ? 'Definido neste mês' : sourceMonth ? `Repetido de ${sourceMonth}` : 'Valor padrão'
+  useEffect(() => { setValue(item.orcamento) }, [item.orcamento])
   async function save() {
     setSaving(true)
     try { await onSave(item, value) } finally { setSaving(false) }
@@ -19,7 +20,7 @@ function BudgetRow({ item, onSave }) {
   </div>
 }
 
-export default function CadastrosPage({ notify }) {
+export default function CadastrosPage({ notify, onChanged }) {
   const [data, setData] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedGroupId, setSelectedGroupId] = useState('')
@@ -49,7 +50,9 @@ export default function CadastrosPage({ notify }) {
   async function saveBudget(item, orcamento) {
     try {
       await api(`/api/orcamentos/contas/${item.id}`, { method: 'PUT', body: JSON.stringify({ orcamento, sedeId: filter.sedeId, competencia: filter.competencia }) })
-      notify(`Orçamento da conta ${item.codigo} atualizado a partir de ${filter.competencia.slice(5, 7)}/${filter.competencia.slice(0, 4)}.`); await load()
+      await load()
+      onChanged?.()
+      notify(`Orçamento da conta ${item.codigo} atualizado a partir de ${filter.competencia.slice(5, 7)}/${filter.competencia.slice(0, 4)}.`)
     } catch (error) { notify(error.message, 'error'); throw error }
   }
 

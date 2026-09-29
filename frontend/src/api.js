@@ -7,6 +7,7 @@ export function setToken(token) { token ? sessionStorage.setItem('lancamentos_to
 export async function api(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
+    cache: 'no-store',
     headers: {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
