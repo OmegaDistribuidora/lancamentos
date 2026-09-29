@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: lancamentos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lancamentos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: America/Fortaleza
+    ports:
+      - "5432:5432"
+    volumes:
+      - lancamentos_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lancamentos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lancamentos_postgres:
