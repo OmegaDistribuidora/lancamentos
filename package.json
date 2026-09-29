@@ -1,8 +1,11 @@
 {
   "name": "lancamentos",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "dev": "concurrently -n API,WEB -c blue,green \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "npm run build -w backend && npm run build -w frontend",

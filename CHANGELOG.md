@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — 2026-09-29
+
+- liberação segura dos domínios `*.up.railway.app` no servidor de preview do frontend;
+- ajustes finais de configuração para o primeiro deploy no Railway.
+
 ## 1.0.0 — 2026-09-29
 
 - aplicação inicial com frontend React, API Fastify e PostgreSQL;
