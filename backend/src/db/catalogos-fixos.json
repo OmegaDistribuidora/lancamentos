@@ -1,31 +1,6 @@
 {
   "grupos": [
     {
-      "codigo": "100",
-      "nome": "PAGTOS ASSOCIADOS AO CMV",
-      "cor": "#2563eb"
-    },
-    {
-      "codigo": "101",
-      "nome": "VENDA FATURADA",
-      "cor": "#0ea5e9"
-    },
-    {
-      "codigo": "102",
-      "nome": "CMV DA VENDA FATURADA",
-      "cor": "#14b8a6"
-    },
-    {
-      "codigo": "103",
-      "nome": "SALDO BRUTO",
-      "cor": "#22c55e"
-    },
-    {
-      "codigo": "104",
-      "nome": "% SALDO BRUTO",
-      "cor": "#84cc16"
-    },
-    {
       "codigo": "200",
       "nome": "DESPESAS COM VENDAS",
       "cor": "#eab308"
@@ -34,16 +9,6 @@
       "codigo": "201",
       "nome": "DESPESAS COM ESCRITORIOS DE VENDAS",
       "cor": "#f59e0b"
-    },
-    {
-      "codigo": "202",
-      "nome": "COMPRA DE MERCADORIAS",
-      "cor": "#f97316"
-    },
-    {
-      "codigo": "250",
-      "nome": "VERBAS / DESPESAS DEPTO COMPRAS",
-      "cor": "#ef4444"
     },
     {
       "codigo": "300",
@@ -81,11 +46,6 @@
       "cor": "#14b8a6"
     },
     {
-      "codigo": "404",
-      "nome": "DESPESAS E RECEITAS CD DE SOBRAL - CE",
-      "cor": "#22c55e"
-    },
-    {
       "codigo": "500",
       "nome": "DESPESAS INFORMATICA",
       "cor": "#84cc16"
@@ -101,29 +61,9 @@
       "cor": "#f59e0b"
     },
     {
-      "codigo": "800",
-      "nome": "CONTROLE INTERNO DE FILIAIS",
-      "cor": "#f97316"
-    },
-    {
       "codigo": "900",
       "nome": "DESPESAS DIRETORIA GERAL",
       "cor": "#ef4444"
-    },
-    {
-      "codigo": "990",
-      "nome": "TOTAL DE DESPESAS",
-      "cor": "#ec4899"
-    },
-    {
-      "codigo": "991",
-      "nome": "VALOR SALDO LIQUIDO",
-      "cor": "#a855f7"
-    },
-    {
-      "codigo": "992",
-      "nome": "% SALDO LIQUIDO",
-      "cor": "#8b5cf6"
     },
     {
       "codigo": "993",
@@ -134,159 +74,9 @@
       "codigo": "994",
       "nome": "TOTAL INVESTIMENTOS",
       "cor": "#2563eb"
-    },
-    {
-      "codigo": "995",
-      "nome": "VALOR SALDO FINAL",
-      "cor": "#0ea5e9"
-    },
-    {
-      "codigo": "996",
-      "nome": "% SALDO FINAL",
-      "cor": "#14b8a6"
-    },
-    {
-      "codigo": "997",
-      "nome": "IMOBILIZADO",
-      "cor": "#22c55e"
-    },
-    {
-      "codigo": "998",
-      "nome": "RECEITAS NÃO OPERACIONAL",
-      "cor": "#84cc16"
-    },
-    {
-      "codigo": "999",
-      "nome": "ANORMALIDADES",
-      "cor": "#eab308"
     }
   ],
   "contas": [
-    {
-      "codigo": "100001",
-      "nome": "Compra Mercadoria Para Revenda",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100002",
-      "nome": "Fretes De Mercadoria",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100003",
-      "nome": "Outros Custos De Merc.Revenda",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100010",
-      "nome": "Comissao De Vendedores",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100011",
-      "nome": "Pis (Se Estiver No Cmv)",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100012",
-      "nome": "Cofins (Se Estiver No Cmv)",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100013",
-      "nome": "Cpmf (Se Estiver No Cmv)",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100014",
-      "nome": "Irpj (Se Estiver No Cmv)",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100015",
-      "nome": "Cssl (Se Estiver No Cmv)",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100016",
-      "nome": "** Migrado Nao Usar ***",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100017",
-      "nome": "Substituicao Tributaria Na Venda",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100021",
-      "nome": "Restituicao A Fornecedor",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100022",
-      "nome": "Verba Para Cmv",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100023",
-      "nome": "Emprerimos Em Bancos",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100024",
-      "nome": "Ajuste De Caixa/Banco",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100025",
-      "nome": "Boletos Teste",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "100026",
-      "nome": "Taxas Portuarias",
-      "grupocodigo": "100"
-    },
-    {
-      "codigo": "10031",
-      "nome": "Fretes De Mercadorias",
-      "grupocodigo": "101"
-    },
-    {
-      "codigo": "101",
-      "nome": "Venda Faturada",
-      "grupocodigo": "101"
-    },
-    {
-      "codigo": "105",
-      "nome": "Devolucao De Clientes",
-      "grupocodigo": "101"
-    },
-    {
-      "codigo": "107",
-      "nome": "Outros Faturamentos",
-      "grupocodigo": "101"
-    },
-    {
-      "codigo": "102",
-      "nome": "Cmv Da Venda Faturada",
-      "grupocodigo": "102"
-    },
-    {
-      "codigo": "106",
-      "nome": "Cmv De Devolucao De Clientes",
-      "grupocodigo": "102"
-    },
-    {
-      "codigo": "103",
-      "nome": "Saldo Bruto",
-      "grupocodigo": "103"
-    },
-    {
-      "codigo": "104",
-      "nome": "% Saldo Bruto",
-      "grupocodigo": "104"
-    },
     {
       "codigo": "100020",
       "nome": "Devolucao De Cliente",
@@ -406,96 +196,6 @@
       "codigo": "201012",
       "nome": "Ajuda Combustivel",
       "grupocodigo": "201"
-    },
-    {
-      "codigo": "200020",
-      "nome": "Pgto Fornecedor Matriz",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "202001",
-      "nome": "Compra De Mercadoria Para Venda",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "202002",
-      "nome": "Pag. Antecipado Mercadorias",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "202003",
-      "nome": "Pag. Adiantamento A Fornecedor",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "202004",
-      "nome": "Pag. Fornecedores Diversos",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "202005",
-      "nome": "Acrescimos Nos Custos",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "250999",
-      "nome": "Adiant.Fornec.Merc.Revenda ***",
-      "grupocodigo": "202"
-    },
-    {
-      "codigo": "250001",
-      "nome": "Vb Campanhas/ Prom./Incentivos",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250002",
-      "nome": "Vb Avarias E Devolucoes",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250003",
-      "nome": "Vb Inauguracao",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250004",
-      "nome": "Vb Margem Adicional",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250005",
-      "nome": "Vb Aniversario",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250006",
-      "nome": "Vb Comissao Adicional",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250007",
-      "nome": "Vb Viagens E Representacoes",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250008",
-      "nome": "Vb Formularios E Notas Fiscais",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250009",
-      "nome": "Vb Para Rebaixa De Custo De Mercadoria",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "250010",
-      "nome": "Verba Transitória Para Uso Nas Despesas",
-      "grupocodigo": "250"
-    },
-    {
-      "codigo": "402022",
-      "nome": "* Aniversario/Inauguração De Lojas",
-      "grupocodigo": "250"
     },
     {
       "codigo": "10026",
@@ -1158,56 +858,6 @@
       "grupocodigo": "403"
     },
     {
-      "codigo": "404001",
-      "nome": "Salario De Equipe Da Unidade",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404002",
-      "nome": "Aluguel Do Predio",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404003",
-      "nome": "Iptu Predio De Sobral",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404004",
-      "nome": "Energia Do Predio",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404005",
-      "nome": "Despesas Com Veiculos",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404006",
-      "nome": "Despesas Com Alimentação",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404007",
-      "nome": "Despesas Com Internet",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404008",
-      "nome": "Despesas Com Viahens",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404009",
-      "nome": "Outras Despesas Com Cd De Sobral",
-      "grupocodigo": "404"
-    },
-    {
-      "codigo": "404010",
-      "nome": "Bonus De Descarga De Nercadorias",
-      "grupocodigo": "404"
-    },
-    {
       "codigo": "500001",
       "nome": "Viagens E Estadias - Cpd",
       "grupocodigo": "500"
@@ -1333,16 +983,6 @@
       "grupocodigo": "700"
     },
     {
-      "codigo": "800001",
-      "nome": "Filial X Matriz - Contas",
-      "grupocodigo": "800"
-    },
-    {
-      "codigo": "800002",
-      "nome": "Filail X Juazeiro Contas",
-      "grupocodigo": "800"
-    },
-    {
       "codigo": "37",
       "nome": "*** Temporaria ***",
       "grupocodigo": "900"
@@ -1373,21 +1013,6 @@
       "grupocodigo": "900"
     },
     {
-      "codigo": "990",
-      "nome": "Total De Despesas",
-      "grupocodigo": "990"
-    },
-    {
-      "codigo": "991",
-      "nome": "Valor Saldo Liquido",
-      "grupocodigo": "991"
-    },
-    {
-      "codigo": "992",
-      "nome": "% Saldo Liquido",
-      "grupocodigo": "992"
-    },
-    {
       "codigo": "993001",
       "nome": "Imoveis",
       "grupocodigo": "993"
@@ -1416,36 +1041,6 @@
       "codigo": "994",
       "nome": "Total Investimentos",
       "grupocodigo": "994"
-    },
-    {
-      "codigo": "995",
-      "nome": "Valor Saldo Final",
-      "grupocodigo": "995"
-    },
-    {
-      "codigo": "996",
-      "nome": "% Saldo Final",
-      "grupocodigo": "996"
-    },
-    {
-      "codigo": "997001",
-      "nome": "Veiculos",
-      "grupocodigo": "997"
-    },
-    {
-      "codigo": "998001",
-      "nome": "Ganhos Alienação De Imodilizados",
-      "grupocodigo": "998"
-    },
-    {
-      "codigo": "998002",
-      "nome": "Aluguel De Imoveis",
-      "grupocodigo": "998"
-    },
-    {
-      "codigo": "99",
-      "nome": "Anormalidades",
-      "grupocodigo": "999"
     }
   ]
 }

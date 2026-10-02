@@ -23,6 +23,11 @@ const centrosPorSede: Record<string, string[]> = {
   Rizo: ['GERAL'],
 };
 
+const gruposRemovidos = [
+  '100', '101', '102', '103', '104', '202', '250', '404', '800',
+  '954', '990', '991', '992', '995', '996', '997', '998', '999',
+];
+
 function centroNormalizado(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleUpperCase('pt-BR');
 }
@@ -197,6 +202,34 @@ export async function migrate(): Promise<void> {
     `, [JSON.stringify(catalogs.contas)]);
     await client.query(`update contas set ativo=false where codigo is null or not (codigo=any($1::text[]))`, [catalogs.contas.map((item) => item.codigo)]);
     await client.query(`update grupos_contas set ativo=false where codigo is null or not (codigo=any($1::text[]))`, [catalogs.grupos.map((item) => item.codigo)]);
+    const catalogCleanupMigration = await client.query(`select 1 from migracoes where versao='007_remover_grupos_obsoletos'`);
+    if (!catalogCleanupMigration.rowCount) {
+      await client.query(`
+        update contas c set ativo=false
+        from grupos_contas g
+        where g.id=c.grupo_conta_id and g.codigo=any($1::text[])
+      `, [gruposRemovidos]);
+      await client.query(`update grupos_contas set ativo=false where codigo=any($1::text[])`, [gruposRemovidos]);
+      await client.query(`
+        delete from orcamentos_contas o
+        using contas c, grupos_contas g
+        where o.conta_id=c.id and c.grupo_conta_id=g.id and g.codigo=any($1::text[])
+      `, [gruposRemovidos]);
+      await client.query(`
+        delete from contas c
+        using grupos_contas g
+        where c.grupo_conta_id=g.id
+          and g.codigo=any($1::text[])
+          and not exists (select 1 from lancamentos l where l.conta_id=c.id)
+      `, [gruposRemovidos]);
+      await client.query(`
+        delete from grupos_contas g
+        where g.codigo=any($1::text[])
+          and not exists (select 1 from contas c where c.grupo_conta_id=g.id)
+          and not exists (select 1 from lancamentos l where l.grupo_conta_id=g.id)
+      `, [gruposRemovidos]);
+      await client.query(`insert into migracoes (versao) values ('007_remover_grupos_obsoletos')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

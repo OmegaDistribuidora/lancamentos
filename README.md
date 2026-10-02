@@ -48,7 +48,7 @@ npm run db:migrate
 - auditoria com estado anterior, estado novo e de/para de cada campo editado;
 - exportação para `.xlsx` e PDF por administrador, gerência administrativa e diretoria;
 - gestão administrativa de usuários, perfis, sedes e centros de custo;
-- 32 grupos e 257 contas fixos, importados de `filial.dgrupoconta` e `filial.dcontacontabil`;
+- 15 grupos e 193 contas fixos, importados de `filial.dgrupoconta` e `filial.dcontacontabil`;
 - busca por código ou nome nos seletores de grupo e conta, com contas filtradas pelo grupo escolhido.
 - 11 sedes fixas da empresa, incluindo `Realleza` com a grafia correta;
 - orçamento editável por conta, sede e competência, iniciado em R$ 0,00;
