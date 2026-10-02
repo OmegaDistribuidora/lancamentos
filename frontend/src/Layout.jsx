@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpenCheck, ChevronDown, ClipboardList, FileClock, Landmark, LayoutDashboard, LogOut, Menu, Plus, Search, Users, X } from 'lucide-react'
+import { BookOpenCheck, Building2, ChevronDown, ClipboardList, FileClock, Landmark, LayoutDashboard, LogOut, Menu, Plus, Search, Users, X } from 'lucide-react'
 import { profileLabel } from './format.js'
 
 const items = [
@@ -7,6 +7,7 @@ const items = [
   { id: 'lancamentos', label: 'Lançamentos', icon: ClipboardList },
   { id: 'orcamentos', label: 'Orçamentos', icon: Landmark, manager: true },
   { id: 'auditoria', label: 'Auditoria', icon: FileClock, manager: true },
+  { id: 'centros-custo', label: 'Centros de custo', icon: Building2, manager: true },
   { id: 'usuarios', label: 'Usuários', icon: Users, admin: true },
 ]
 

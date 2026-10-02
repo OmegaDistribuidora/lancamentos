@@ -112,6 +112,21 @@ create table if not exists auditoria_lancamentos (
 
 create index if not exists idx_auditoria_lancamento on auditoria_lancamentos(numero_lancamento, ocorrido_em desc);
 
+create table if not exists auditoria_centros_custo (
+  id bigserial primary key,
+  centro_custo_id bigint not null,
+  acao varchar(20) not null check (acao in ('INSERCAO', 'EDICAO', 'EXCLUSAO')),
+  usuario_id bigint not null references usuarios(id),
+  usuario_nome varchar(120) not null,
+  dados_anteriores jsonb,
+  dados_novos jsonb,
+  alteracoes jsonb,
+  ocorrido_em timestamptz not null default now()
+);
+
+create index if not exists idx_auditoria_centros_custo
+  on auditoria_centros_custo(centro_custo_id, ocorrido_em desc);
+
 create table if not exists tokens_sso_utilizados (
   identificador varchar(180) primary key,
   expira_em timestamptz not null,

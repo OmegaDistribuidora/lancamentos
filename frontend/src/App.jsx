@@ -11,6 +11,7 @@ const LancamentoModal = lazy(() => import('./LancamentoModal.jsx'))
 const AuditoriaPage = lazy(() => import('./AuditoriaPage.jsx'))
 const UsuariosPage = lazy(() => import('./UsuariosPage.jsx'))
 const CadastrosPage = lazy(() => import('./CadastrosPage.jsx'))
+const CentrosCustoPage = lazy(() => import('./CentrosCustoPage.jsx'))
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -61,6 +62,7 @@ export default function App() {
         {view === 'lancamentos' && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={setModal} notify={notify}/>}
         {view === 'orcamentos' && user.podeVerTodos && <CadastrosPage notify={notify} onChanged={() => setRefreshKey((key) => key + 1)}/>}
         {view === 'auditoria' && user.podeVerTodos && <AuditoriaPage notify={notify}/>}
+        {view === 'centros-custo' && user.podeVerTodos && <CentrosCustoPage notify={notify} onChanged={loadCatalogs}/>}
         {view === 'usuarios' && user.podeAdministrar && <UsuariosPage catalogs={catalogs} notify={notify}/>}
       </Suspense>
     </Layout>

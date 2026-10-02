@@ -169,22 +169,24 @@ export async function migrate(): Promise<void> {
       `);
       await client.query(`insert into migracoes (versao) values ('005_centros_custo_por_sede')`);
     }
-    const paresCentros = Object.entries(centrosPorSede).flatMap(([sede, centros]) => centros.map((nome) => ({ sede, nome })));
-    await client.query(`
-      insert into centros_custo (sede_id, nome, ativo)
-      select s.id, x.nome, true
-      from jsonb_to_recordset($1::jsonb) as x(sede text, nome text)
-      join sedes s on s.nome=x.sede
-      on conflict (sede_id, nome) do update set ativo=true
-    `, [JSON.stringify(paresCentros)]);
-    await client.query(`
-      update centros_custo c set ativo=false
-      where not exists (
-        select 1 from jsonb_to_recordset($1::jsonb) as x(sede text, nome text)
-        join sedes s on s.nome=x.sede
-        where s.id=c.sede_id and x.nome=c.nome
-      )
-    `, [JSON.stringify(paresCentros)]);
+    const costCenterAuditMigration = await client.query(`select 1 from migracoes where versao='008_auditoria_centros_custo'`);
+    if (!costCenterAuditMigration.rowCount) {
+      await client.query(`
+        create table if not exists auditoria_centros_custo (
+          id bigserial primary key,
+          centro_custo_id bigint not null,
+          acao varchar(20) not null check (acao in ('INSERCAO', 'EDICAO', 'EXCLUSAO')),
+          usuario_id bigint not null references usuarios(id),
+          usuario_nome varchar(120) not null,
+          dados_anteriores jsonb,
+          dados_novos jsonb,
+          alteracoes jsonb,
+          ocorrido_em timestamptz not null default now()
+        )
+      `);
+      await client.query(`create index if not exists idx_auditoria_centros_custo on auditoria_centros_custo(centro_custo_id, ocorrido_em desc)`);
+      await client.query(`insert into migracoes (versao) values ('008_auditoria_centros_custo')`);
+    }
     await client.query(`
       insert into grupos_contas (codigo, nome, cor, ativo)
       select x.codigo, x.nome, x.cor, true

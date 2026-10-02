@@ -258,6 +258,7 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 
 /* Audit, users, catalogs */
 .audit-filters { grid-template-columns:minmax(250px,1fr) 220px; justify-content:start; }
+.cost-center-filters { grid-template-columns:minmax(260px,1fr) minmax(220px,300px); }
 .audit-list article { min-height:78px; display:grid; grid-template-columns:42px 1fr minmax(160px,.5fr) 40px; gap:13px; align-items:center; border-bottom:1px solid #edf0f4; }
 .audit-list article:last-child { border:0; }
 .audit-symbol { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; }

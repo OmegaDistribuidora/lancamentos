@@ -8,6 +8,7 @@ import { registerLancamentoRoutes } from './routes/lancamentos.js';
 import { registerDashboardRoutes } from './routes/dashboard.js';
 import { registerAuditRoutes } from './routes/auditoria.js';
 import { registerUserRoutes } from './routes/usuarios.js';
+import { registerCostCenterRoutes } from './routes/centros-custo.js';
 
 export async function createApp() {
   const app = Fastify({ logger: true, trustProxy: true });
@@ -24,6 +25,7 @@ export async function createApp() {
   await registerDashboardRoutes(app);
   await registerAuditRoutes(app);
   await registerUserRoutes(app);
+  await registerCostCenterRoutes(app);
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof HttpError) return reply.status(error.status).send({ status: error.status, message: error.message, fields: error.fields });
     if ((error as { code?: string }).code === '23505') return reply.status(409).send({ status: 409, message: 'Já existe um cadastro com estes dados.' });
