@@ -19,10 +19,11 @@ function GroupAccountFilter({ groups, accounts, groupId, accountIds, onChange })
   const selectedIds = useMemo(() => String(accountIds || '').split(',').filter(Boolean), [accountIds])
   const allAccounts = Boolean(selectedGroup) && selectedIds.length === 0
   const selectedAccount = selectedIds.length === 1 ? groupAccounts.find((account) => String(account.id) === selectedIds[0]) : null
+  const catalogLabel = (item) => item?.catalogo === 'MATRIZ' ? 'Ômega Matriz' : 'Demais sedes'
   const triggerLabel = !selectedGroup
     ? 'Todos os grupos e contas'
     : allAccounts
-      ? selectedGroup.nome
+      ? `${selectedGroup.nome} · ${catalogLabel(selectedGroup)}`
       : selectedAccount
         ? `${selectedAccount.codigo} — ${selectedAccount.nome}`
         : `${selectedGroup.nome} · ${selectedIds.length} contas`
@@ -62,7 +63,7 @@ function GroupAccountFilter({ groups, accounts, groupId, accountIds, onChange })
             ? accountsInGroup
             : accountsInGroup.filter((account) => `${account.codigo} ${account.nome}`.toLocaleLowerCase('pt-BR').includes(term))
           return <div className={`group-option-block ${active ? 'active' : ''}`} key={group.id}>
-            <button type="button" className="group-option" onClick={() => { onChange(String(group.id), ''); setQuery('') }}><span className="option-check">{active && <Check size={13}/>}</span><span><strong>{group.codigo} — {group.nome}</strong><small>{accountsInGroup.length} conta(s)</small></span><ChevronDown className={active ? 'expanded' : ''} size={15}/></button>
+            <button type="button" className="group-option" onClick={() => { onChange(String(group.id), ''); setQuery('') }}><span className="option-check">{active && <Check size={13}/>}</span><span><strong>{group.codigo} — {group.nome}</strong><small>{accountsInGroup.length} conta(s) · {catalogLabel(group)}</small></span><ChevronDown className={active ? 'expanded' : ''} size={15}/></button>
             {active && <div className="account-options">
               <button type="button" className={allAccounts ? 'active' : ''} onClick={() => onChange(String(group.id), '')}><span className="option-check">{allAccounts && <Check size={12}/>}</span><span>Todas as contas do grupo</span></button>
               {visibleAccounts.map((account) => {
@@ -85,6 +86,9 @@ export default function LancamentosPage({ user, catalogs, refreshKey, onNew, onE
   const [page, setPage] = useState(1)
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const selectedSite = catalogs.sedes.find((site) => String(site.id) === String(filters.sedeId))
+  const visibleGroups = useMemo(() => selectedSite ? catalogs.gruposContas.filter((group) => group.catalogo === selectedSite.catalogoContas) : catalogs.gruposContas, [catalogs.gruposContas, selectedSite])
+  const visibleAccounts = useMemo(() => selectedSite ? catalogs.contas.filter((account) => account.catalogo === selectedSite.catalogoContas) : catalogs.contas, [catalogs.contas, selectedSite])
   const load = useCallback(async () => {
     if (filters.periodo === 'personalizado' && (!filters.inicio || !filters.fim)) { setLoading(false); return }
     setLoading(true)
@@ -98,6 +102,7 @@ export default function LancamentosPage({ user, catalogs, refreshKey, onNew, onE
     setFilters((current) => ({ ...current, periodo, ...range })); setPage(1)
   }
   const setGroupAccounts = (grupoContaId, contaIds) => { setFilters((current) => ({ ...current, grupoContaId, contaIds })); setPage(1) }
+  const setSite = (sedeId) => { setFilters((current) => ({ ...current, sedeId, grupoContaId: '', contaIds: '' })); setPage(1) }
 
   async function remove(item) {
     if (!window.confirm(`Excluir o lançamento #${item.numeroLancamento}? A ação ficará registrada na auditoria.`)) return
@@ -129,8 +134,8 @@ export default function LancamentosPage({ user, catalogs, refreshKey, onNew, onE
       <div className="search-field"><Search size={18}/><input value={filters.busca} onChange={(event) => setFilter('busca', event.target.value)} placeholder="Buscar por conta, observação ou colaborador"/></div>
       <label><span>Período</span><FilterSelect options={periodOptions} value={filters.periodo} onChange={setPeriod} ariaLabel="Filtrar período"/></label>
       {filters.periodo === 'personalizado' && <><label><span>Data inicial</span><input type="date" value={filters.inicio} onChange={(event) => setFilter('inicio', event.target.value)}/></label><label><span>Data final</span><input type="date" value={filters.fim} onChange={(event) => setFilter('fim', event.target.value)}/></label></>}
-      <label><span>Sede</span><FilterSelect options={[{ value: '', label: 'Todas as sedes' }, ...catalogs.sedes.map((row) => ({ value: String(row.id), label: row.nome }))]} value={filters.sedeId} onChange={(value) => setFilter('sedeId', value)} ariaLabel="Filtrar sede"/></label>
-      <label className="group-account-label"><span>Grupo e conta</span><GroupAccountFilter groups={catalogs.gruposContas} accounts={catalogs.contas} groupId={filters.grupoContaId} accountIds={filters.contaIds} onChange={setGroupAccounts}/></label>
+      <label><span>Sede</span><FilterSelect options={[{ value: '', label: 'Todas as sedes' }, ...catalogs.sedes.map((row) => ({ value: String(row.id), label: row.nome }))]} value={filters.sedeId} onChange={setSite} ariaLabel="Filtrar sede"/></label>
+      <label className="group-account-label"><span>Grupo e conta</span><GroupAccountFilter groups={visibleGroups} accounts={visibleAccounts} groupId={filters.grupoContaId} accountIds={filters.contaIds} onChange={setGroupAccounts}/></label>
       {user.podeVerTodos && <label><span>Colaborador</span><FilterSelect options={[{ value: '', label: 'Todos os colaboradores' }, ...catalogs.colaboradores.map((row) => ({ value: String(row.id), label: row.nome }))]} value={filters.colaboradorId} onChange={(value) => setFilter('colaboradorId', value)} ariaLabel="Filtrar colaborador"/></label>}
     </section>
     <section className={`metrics-grid launch-metrics ${loading ? 'loading-metrics' : ''}`}>

@@ -55,14 +55,19 @@ async function validateAccess(client: PoolClient, user: AuthUser, payload: Recor
       exists(select 1 from sedes where id=$2 and ativo) as "sedeExiste",
       exists(select 1 from centros_custo where id=$3 and sede_id=$2 and ativo) as "centroDaSede",
       exists(select 1 from usuario_centros_custo where usuario_id=$1 and centro_custo_id=$3) as "centroPermitido",
-      exists(select 1 from contas where id=$4 and grupo_conta_id=$5 and ativo) as conta`,
+      exists(
+        select 1 from contas c
+        join grupos_contas g on g.id=c.grupo_conta_id and g.catalogo=c.catalogo
+        join sedes s on s.id=$2 and s.catalogo_contas=c.catalogo
+        where c.id=$4 and c.grupo_conta_id=$5 and c.ativo and g.ativo
+      ) as conta`,
     [user.id, sedeId, centroCustoId, contaId, grupoContaId],
   );
   if (!allowed.rows[0]?.sedeExiste) badRequest('A sede selecionada não existe ou está inativa.');
   if (!isAdmin(user) && !allowed.rows[0]?.sede) badRequest('A sede não está liberada para este usuário.');
   if (!allowed.rows[0]?.centroDaSede) badRequest('O centro de custo não pertence à sede selecionada.');
   if (!isAdmin(user) && !allowed.rows[0]?.centroPermitido) badRequest('O centro de custo não está liberado para este usuário.');
-  if (!allowed.rows[0]?.conta) badRequest('A conta não pertence ao grupo selecionado.');
+  if (!allowed.rows[0]?.conta) badRequest('A conta e o grupo selecionados não pertencem ao catálogo desta sede.');
   return { dataPagamento, sedeId, centroCustoId, grupoContaId, contaId, observacao: optionalText(payload.observacao), valor: money(payload.valor) };
 }
 

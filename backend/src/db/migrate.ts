@@ -35,8 +35,13 @@ function centroNormalizado(value: string): string {
 export async function migrate(): Promise<void> {
   const schemaPath = fileURLToPath(new URL('./schema.sql', import.meta.url));
   const catalogsPath = fileURLToPath(new URL('./catalogos-fixos.json', import.meta.url));
+  const matrixCatalogsPath = fileURLToPath(new URL('./catalogos-matriz.json', import.meta.url));
   const sql = await readFile(schemaPath, 'utf8');
   const catalogs = JSON.parse(await readFile(catalogsPath, 'utf8')) as {
+    grupos: Array<{ codigo: string; nome: string; cor: string }>;
+    contas: Array<{ codigo: string; nome: string; grupocodigo: string }>;
+  };
+  const matrixCatalogs = JSON.parse(await readFile(matrixCatalogsPath, 'utf8')) as {
     grupos: Array<{ codigo: string; nome: string; cor: string }>;
     contas: Array<{ codigo: string; nome: string; grupocodigo: string }>;
   };
@@ -187,51 +192,96 @@ export async function migrate(): Promise<void> {
       await client.query(`create index if not exists idx_auditoria_centros_custo on auditoria_centros_custo(centro_custo_id, ocorrido_em desc)`);
       await client.query(`insert into migracoes (versao) values ('008_auditoria_centros_custo')`);
     }
+    const catalogBySiteMigration = await client.query(`select 1 from migracoes where versao='009_catalogos_por_sede'`);
+    if (!catalogBySiteMigration.rowCount) {
+      await client.query(`alter table sedes add column if not exists catalogo_contas varchar(20) not null default 'FILIAL'`);
+      await client.query(`alter table grupos_contas add column if not exists catalogo varchar(20) not null default 'FILIAL'`);
+      await client.query(`alter table contas add column if not exists catalogo varchar(20) not null default 'FILIAL'`);
+      await client.query(`alter table sedes drop constraint if exists sedes_catalogo_contas_check`);
+      await client.query(`alter table sedes add constraint sedes_catalogo_contas_check check (catalogo_contas in ('FILIAL','MATRIZ'))`);
+      await client.query(`alter table grupos_contas drop constraint if exists grupos_contas_catalogo_check`);
+      await client.query(`alter table grupos_contas add constraint grupos_contas_catalogo_check check (catalogo in ('FILIAL','MATRIZ'))`);
+      await client.query(`alter table contas drop constraint if exists contas_catalogo_check`);
+      await client.query(`alter table contas add constraint contas_catalogo_check check (catalogo in ('FILIAL','MATRIZ'))`);
+      await client.query(`alter table grupos_contas drop constraint if exists grupos_contas_codigo_key`);
+      await client.query(`alter table grupos_contas drop constraint if exists grupos_contas_nome_key`);
+      await client.query(`alter table contas drop constraint if exists contas_codigo_key`);
+      await client.query(`alter table contas drop constraint if exists contas_grupo_conta_id_nome_key`);
+      await client.query(`drop index if exists uq_grupos_contas_codigo`);
+      await client.query(`drop index if exists uq_contas_codigo`);
+      await client.query(`create unique index if not exists uq_grupos_contas_catalogo_codigo on grupos_contas(catalogo,codigo) where codigo is not null`);
+      await client.query(`create unique index if not exists uq_grupos_contas_catalogo_nome on grupos_contas(catalogo,nome)`);
+      await client.query(`create unique index if not exists uq_contas_catalogo_codigo on contas(catalogo,codigo) where codigo is not null`);
+      await client.query(`update sedes set catalogo_contas=case when nome='Ômega Matriz' then 'MATRIZ' else 'FILIAL' end`);
+      await client.query(`
+        delete from orcamentos_contas o
+        using contas c, sedes s
+        where o.conta_id=c.id and o.sede_id=s.id and c.catalogo<>s.catalogo_contas
+      `);
+      await client.query(`insert into migracoes (versao) values ('009_catalogos_por_sede')`);
+    }
     await client.query(`
-      insert into grupos_contas (codigo, nome, cor, ativo)
-      select x.codigo, x.nome, x.cor, true
+      insert into grupos_contas (catalogo, codigo, nome, cor, ativo)
+      select 'FILIAL', x.codigo, x.nome, x.cor, true
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, cor text)
-      on conflict (codigo) where codigo is not null
+      on conflict (catalogo, codigo) where codigo is not null
       do update set nome=excluded.nome, cor=excluded.cor, ativo=true
     `, [JSON.stringify(catalogs.grupos)]);
     await client.query(`
-      insert into contas (codigo, grupo_conta_id, nome, ativo)
-      select x.codigo, g.id, x.nome, true
+      insert into contas (catalogo, codigo, grupo_conta_id, nome, ativo)
+      select 'FILIAL', x.codigo, g.id, x.nome, true
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, grupocodigo text)
-      join grupos_contas g on g.codigo=x.grupocodigo
-      on conflict (codigo) where codigo is not null
+      join grupos_contas g on g.catalogo='FILIAL' and g.codigo=x.grupocodigo
+      on conflict (catalogo, codigo) where codigo is not null
       do update set grupo_conta_id=excluded.grupo_conta_id, nome=excluded.nome, ativo=true
     `, [JSON.stringify(catalogs.contas)]);
-    await client.query(`update contas set ativo=false where codigo is null or not (codigo=any($1::text[]))`, [catalogs.contas.map((item) => item.codigo)]);
-    await client.query(`update grupos_contas set ativo=false where codigo is null or not (codigo=any($1::text[]))`, [catalogs.grupos.map((item) => item.codigo)]);
+    await client.query(`update contas set ativo=false where catalogo='FILIAL' and (codigo is null or not (codigo=any($1::text[])))`, [catalogs.contas.map((item) => item.codigo)]);
+    await client.query(`update grupos_contas set ativo=false where catalogo='FILIAL' and (codigo is null or not (codigo=any($1::text[])))`, [catalogs.grupos.map((item) => item.codigo)]);
     const catalogCleanupMigration = await client.query(`select 1 from migracoes where versao='007_remover_grupos_obsoletos'`);
     if (!catalogCleanupMigration.rowCount) {
       await client.query(`
         update contas c set ativo=false
         from grupos_contas g
-        where g.id=c.grupo_conta_id and g.codigo=any($1::text[])
+        where g.id=c.grupo_conta_id and g.catalogo='FILIAL' and g.codigo=any($1::text[])
       `, [gruposRemovidos]);
-      await client.query(`update grupos_contas set ativo=false where codigo=any($1::text[])`, [gruposRemovidos]);
+      await client.query(`update grupos_contas set ativo=false where catalogo='FILIAL' and codigo=any($1::text[])`, [gruposRemovidos]);
       await client.query(`
         delete from orcamentos_contas o
         using contas c, grupos_contas g
-        where o.conta_id=c.id and c.grupo_conta_id=g.id and g.codigo=any($1::text[])
+        where o.conta_id=c.id and c.grupo_conta_id=g.id and g.catalogo='FILIAL' and g.codigo=any($1::text[])
       `, [gruposRemovidos]);
       await client.query(`
         delete from contas c
         using grupos_contas g
         where c.grupo_conta_id=g.id
-          and g.codigo=any($1::text[])
+          and g.catalogo='FILIAL' and g.codigo=any($1::text[])
           and not exists (select 1 from lancamentos l where l.conta_id=c.id)
       `, [gruposRemovidos]);
       await client.query(`
         delete from grupos_contas g
-        where g.codigo=any($1::text[])
+        where g.catalogo='FILIAL' and g.codigo=any($1::text[])
           and not exists (select 1 from contas c where c.grupo_conta_id=g.id)
           and not exists (select 1 from lancamentos l where l.grupo_conta_id=g.id)
       `, [gruposRemovidos]);
       await client.query(`insert into migracoes (versao) values ('007_remover_grupos_obsoletos')`);
     }
+    await client.query(`
+      insert into grupos_contas (catalogo, codigo, nome, cor, ativo)
+      select 'MATRIZ', x.codigo, x.nome, x.cor, true
+      from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, cor text)
+      on conflict (catalogo, codigo) where codigo is not null
+      do update set nome=excluded.nome, cor=excluded.cor, ativo=true
+    `, [JSON.stringify(matrixCatalogs.grupos)]);
+    await client.query(`
+      insert into contas (catalogo, codigo, grupo_conta_id, nome, ativo)
+      select 'MATRIZ', x.codigo, g.id, x.nome, true
+      from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, grupocodigo text)
+      join grupos_contas g on g.catalogo='MATRIZ' and g.codigo=x.grupocodigo
+      on conflict (catalogo, codigo) where codigo is not null
+      do update set grupo_conta_id=excluded.grupo_conta_id, nome=excluded.nome, ativo=true
+    `, [JSON.stringify(matrixCatalogs.contas)]);
+    await client.query(`update contas set ativo=false where catalogo='MATRIZ' and (codigo is null or not (codigo=any($1::text[])))`, [matrixCatalogs.contas.map((item) => item.codigo)]);
+    await client.query(`update grupos_contas set ativo=false where catalogo='MATRIZ' and (codigo is null or not (codigo=any($1::text[])))`, [matrixCatalogs.grupos.map((item) => item.codigo)]);
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

@@ -1,6 +1,8 @@
 create table if not exists sedes (
   id bigserial primary key,
   nome varchar(120) not null unique,
+  catalogo_contas varchar(20) not null default 'FILIAL'
+    check (catalogo_contas in ('FILIAL', 'MATRIZ')),
   ativo boolean not null default true,
   criado_em timestamptz not null default now()
 );
@@ -17,22 +19,28 @@ create table if not exists centros_custo (
 
 create table if not exists grupos_contas (
   id bigserial primary key,
-  codigo varchar(30) not null unique,
-  nome varchar(160) not null unique,
+  catalogo varchar(20) not null default 'FILIAL'
+    check (catalogo in ('FILIAL', 'MATRIZ')),
+  codigo varchar(30) not null,
+  nome varchar(160) not null,
   cor varchar(20) not null default '#2563eb',
   ativo boolean not null default true,
-  criado_em timestamptz not null default now()
+  criado_em timestamptz not null default now(),
+  unique (catalogo, codigo),
+  unique (catalogo, nome)
 );
 
 create table if not exists contas (
   id bigserial primary key,
-  codigo varchar(30) not null unique,
+  catalogo varchar(20) not null default 'FILIAL'
+    check (catalogo in ('FILIAL', 'MATRIZ')),
+  codigo varchar(30) not null,
   grupo_conta_id bigint not null references grupos_contas(id),
   nome varchar(180) not null,
   orcamento numeric(14,2) not null default 0.00 check (orcamento >= 0),
   ativo boolean not null default true,
   criado_em timestamptz not null default now(),
-  unique (grupo_conta_id, nome)
+  unique (catalogo, codigo)
 );
 
 create table if not exists usuarios (

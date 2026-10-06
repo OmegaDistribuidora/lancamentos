@@ -104,7 +104,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
     const range = `and l.data_pagamento between ${startRef}::date and ${endRef}::date`;
     const filters = launchFilters.join(' ');
     const totalBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
-      from contas c cross join sedes s
+      from contas c join sedes s on s.catalogo_contas=c.catalogo
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
       left join lateral (
         select historico.valor from orcamentos_contas historico
@@ -113,14 +113,14 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
       ) o on true
       where c.ativo and s.ativo ${budgetSedeFilter})`;
     const groupBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
-      from contas c cross join sedes s
+      from contas c join sedes s on s.catalogo_contas=c.catalogo
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
       left join lateral (
         select historico.valor from orcamentos_contas historico
         where historico.conta_id=c.id and historico.sede_id=s.id and historico.competencia <= mes.competencia::date
         order by historico.competencia desc limit 1
       ) o on true
-      where c.grupo_conta_id=g.id and c.ativo and s.ativo ${budgetSedeFilter})`;
+      where c.grupo_conta_id=g.id and c.catalogo=g.catalogo and c.ativo and s.ativo ${budgetSedeFilter})`;
 
     const [cards, evolution, groups, recent] = await Promise.all([
       pool.query(`

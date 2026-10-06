@@ -36,12 +36,14 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
   const replaceValueOnType = useRef(Boolean(item))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const accounts = useMemo(() => catalogs.contas.filter((conta) => String(conta.grupoContaId) === String(form.grupoContaId)), [catalogs.contas, form.grupoContaId])
+  const selectedSite = useMemo(() => catalogs.sedes.find((sede) => String(sede.id) === String(form.sedeId)), [catalogs.sedes, form.sedeId])
+  const groups = useMemo(() => catalogs.gruposContas.filter((grupo) => grupo.catalogo === selectedSite?.catalogoContas), [catalogs.gruposContas, selectedSite])
+  const accounts = useMemo(() => catalogs.contas.filter((conta) => conta.catalogo === selectedSite?.catalogoContas && String(conta.grupoContaId) === String(form.grupoContaId)), [catalogs.contas, form.grupoContaId, selectedSite])
   const costCenters = useMemo(() => catalogs.centrosCusto.filter((centro) => String(centro.sedeId) === String(form.sedeId)), [catalogs.centrosCusto, form.sedeId])
   const change = (key, value) => setForm((current) => {
     if (key === 'sedeId') {
       const primeiroCentro = catalogs.centrosCusto.find((centro) => String(centro.sedeId) === String(value))
-      return { ...current, sedeId: value, centroCustoId: primeiroCentro?.id || '' }
+      return { ...current, sedeId: value, centroCustoId: primeiroCentro?.id || '', grupoContaId: '', contaId: '' }
     }
     return { ...current, [key]: value, ...(key === 'grupoContaId' ? { contaId: '' } : {}) }
   })
@@ -82,7 +84,7 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
         <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
         <label>Sede<select required value={form.sedeId} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{catalogs.sedes.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
         <label>Centro de custo<select required value={form.centroCustoId} onChange={(event) => change('centroCustoId', event.target.value)} disabled={!form.sedeId}><option value="">Selecione</option>{costCenters.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
-        <label>Grupo de contas<SearchableSelect options={catalogs.gruposContas} value={form.grupoContaId} onChange={(value) => change('grupoContaId', value)} placeholder="Digite o código ou nome do grupo"/></label>
+        <label>Grupo de contas<SearchableSelect options={groups} value={form.grupoContaId} onChange={(value) => change('grupoContaId', value)} disabled={!form.sedeId} placeholder="Digite o código ou nome do grupo"/></label>
         <label>Conta<SearchableSelect options={accounts} value={form.contaId} onChange={(value) => change('contaId', value)} disabled={!form.grupoContaId} placeholder={form.grupoContaId ? 'Digite o código ou nome da conta' : 'Escolha o grupo primeiro'}/></label>
         <label>Valor (R$)<input required className="currency-entry" type="text" inputMode="numeric" value={formatValueDigits(valueDigits)} onFocus={() => { replaceValueOnType.current = Boolean(valueDigits) }} onKeyDown={valueKeyDown} onPaste={pasteValue} onChange={() => undefined} placeholder="0,00" autoComplete="off"/></label>
         <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes que ajudem a identificar o lançamento."/></label>

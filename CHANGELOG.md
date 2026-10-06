@@ -1,5 +1,12 @@
 # Changelog
 
+## Não lançado
+
+- catálogo de grupos e contas da matriz importado diretamente de `PCGRUPO` e `PCCONTA`;
+- catálogo contábil separado por sede: Ômega Matriz usa a matriz e as demais sedes preservam a filial;
+- orçamentos da Ômega Matriz limitados exclusivamente às contas da matriz;
+- lançamentos históricos preservados e liberados para realocação auditada ao catálogo correto.
+
 ## 1.2.0 — 2026-09-29
 
 - zeramento único dos orçamentos existentes e novo valor padrão em R$ 0,00;
