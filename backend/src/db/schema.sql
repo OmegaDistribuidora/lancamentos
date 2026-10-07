@@ -25,9 +25,9 @@ create table if not exists grupos_contas (
   nome varchar(160) not null,
   cor varchar(20) not null default '#2563eb',
   ativo boolean not null default true,
+  presente_origem boolean not null default true,
   criado_em timestamptz not null default now(),
-  unique (catalogo, codigo),
-  unique (catalogo, nome)
+  unique (catalogo, codigo)
 );
 
 create table if not exists contas (
@@ -39,6 +39,7 @@ create table if not exists contas (
   nome varchar(180) not null,
   orcamento numeric(14,2) not null default 0.00 check (orcamento >= 0),
   ativo boolean not null default true,
+  presente_origem boolean not null default true,
   criado_em timestamptz not null default now(),
   unique (catalogo, codigo)
 );
@@ -134,6 +135,23 @@ create table if not exists auditoria_centros_custo (
 
 create index if not exists idx_auditoria_centros_custo
   on auditoria_centros_custo(centro_custo_id, ocorrido_em desc);
+
+create table if not exists auditoria_catalogos (
+  id bigserial primary key,
+  entidade_tipo varchar(20) not null check (entidade_tipo in ('GRUPO_CONTA', 'CONTA')),
+  entidade_id bigint not null,
+  catalogo varchar(20) not null,
+  codigo varchar(30) not null,
+  acao varchar(20) not null check (acao in ('ATIVACAO', 'INATIVACAO')),
+  usuario_id bigint not null references usuarios(id),
+  usuario_nome varchar(120) not null,
+  dados_anteriores jsonb,
+  dados_novos jsonb,
+  ocorrido_em timestamptz not null default now()
+);
+
+create index if not exists idx_auditoria_catalogos
+  on auditoria_catalogos(entidade_tipo, entidade_id, ocorrido_em desc);
 
 create table if not exists tokens_sso_utilizados (
   identificador varchar(180) primary key,

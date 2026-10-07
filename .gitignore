@@ -4,5 +4,7 @@ dist/
 .env.local
 coverage/
 *.log
+__pycache__/
+*.py[cod]
 .local/
 .DS_Store

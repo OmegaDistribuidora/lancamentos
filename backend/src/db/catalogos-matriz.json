@@ -1,5 +1,5 @@
 {
-  "origem": "10.85.113.1/PDBCENTRO",
+  "origem": "Oracle WinThor Matriz",
   "grupos": [
     {
       "codigo": "100",
@@ -536,6 +536,11 @@
     {
       "codigo": "201014",
       "nome": "HONORARIOS CONTADOR LIS",
+      "grupocodigo": "201"
+    },
+    {
+      "codigo": "201015",
+      "nome": "COMISSOES VENDA LIC",
       "grupocodigo": "201"
     },
     {

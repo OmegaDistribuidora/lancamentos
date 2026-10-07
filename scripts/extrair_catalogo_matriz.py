@@ -29,6 +29,13 @@ def main() -> None:
     if missing:
         raise SystemExit(f"Variaveis ausentes: {', '.join(missing)}")
 
+    client_lib = os.environ.get("ORACLE_CLIENT_LIB", r"C:\oracle\instantclient_21_19")
+    if Path(client_lib).is_dir():
+        try:
+            oracledb.init_oracle_client(lib_dir=client_lib)
+        except oracledb.Error:
+            pass
+
     dsn = oracledb.makedsn(
         os.environ["ORACLE_HOST"],
         int(os.environ.get("ORACLE_PORT", "1521")),
@@ -67,7 +74,7 @@ def main() -> None:
     destino = Path(sys.argv[1]).resolve()
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text(
-        json.dumps({"origem": "10.85.113.1/PDBCENTRO", "grupos": grupos, "contas": contas}, ensure_ascii=False, indent=2) + "\n",
+        json.dumps({"origem": os.environ.get("CATALOG_ORIGIN", "Oracle WinThor"), "grupos": grupos, "contas": contas}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"Catalogo exportado: {len(grupos)} grupos e {len(contas)} contas.")

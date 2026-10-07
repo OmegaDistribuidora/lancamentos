@@ -4,13 +4,18 @@ import { api, qs } from './api.js'
 import { dateTime } from './format.js'
 import { Empty, Loading, Modal } from './components.jsx'
 
-const ACTIONS = { INSERCAO: 'Inserção', EDICAO: 'Edição', EXCLUSAO: 'Exclusão' }
+const ACTIONS = { INSERCAO: 'Inserção', EDICAO: 'Edição', EXCLUSAO: 'Exclusão', ATIVACAO: 'Ativação', INATIVACAO: 'Inativação' }
 const FIELDS = { dataPagamento: 'Data de pagamento', sedeId: 'Sede', centroCustoId: 'Centro de custo', grupoContaId: 'Grupo de contas', contaId: 'Conta', observacao: 'Observação', valor: 'Valor', nome: 'Nome', sede: 'Sede' }
 const display = (value) => value === null || value === undefined || value === '' ? '—' : String(value)
 const isCostCenter = (item) => item.entidadeTipo === 'CENTRO_CUSTO'
+const isCatalog = (item) => item.entidadeTipo === 'GRUPO_CONTA' || item.entidadeTipo === 'CONTA'
 const snapshot = (item) => item.dadosNovos || item.dadosAnteriores || {}
-const entityTitle = (item) => isCostCenter(item) ? `Centro de custo — ${snapshot(item).nome || `#${item.centroCustoId}`}` : `Lançamento #${item.numeroLancamento}`
+const entityTitle = (item) => isCatalog(item)
+  ? `${item.entidadeTipo === 'GRUPO_CONTA' ? 'Grupo' : 'Conta'} ${item.codigo} — ${snapshot(item).nome || ''}`
+  : isCostCenter(item) ? `Centro de custo — ${snapshot(item).nome || `#${item.centroCustoId}`}` : `Lançamento #${item.numeroLancamento}`
 const description = (item) => {
+  if (item.acao === 'ATIVACAO') return 'Cadastro liberado para novos lançamentos e orçamentos'
+  if (item.acao === 'INATIVACAO') return 'Cadastro bloqueado para novos lançamentos e orçamentos'
   if (item.acao === 'EDICAO') return `${Object.keys(item.alteracoes || {}).length} campo(s) alterado(s)`
   if (item.acao === 'EXCLUSAO') return isCostCenter(item) ? 'Centro removido dos cadastros ativos' : 'Registro removido das telas ativas'
   return isCostCenter(item) ? `Novo centro incluído em ${snapshot(item).sede}` : 'Novo registro incluído'

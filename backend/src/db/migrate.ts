@@ -225,7 +225,7 @@ export async function migrate(): Promise<void> {
       select 'FILIAL', x.codigo, x.nome, x.cor, true
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, cor text)
       on conflict (catalogo, codigo) where codigo is not null
-      do update set nome=excluded.nome, cor=excluded.cor, ativo=true
+      do nothing
     `, [JSON.stringify(catalogs.grupos)]);
     await client.query(`
       insert into contas (catalogo, codigo, grupo_conta_id, nome, ativo)
@@ -233,36 +233,16 @@ export async function migrate(): Promise<void> {
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, grupocodigo text)
       join grupos_contas g on g.catalogo='FILIAL' and g.codigo=x.grupocodigo
       on conflict (catalogo, codigo) where codigo is not null
-      do update set grupo_conta_id=excluded.grupo_conta_id, nome=excluded.nome, ativo=true
+      do nothing
     `, [JSON.stringify(catalogs.contas)]);
-    await client.query(`update contas set ativo=false where catalogo='FILIAL' and (codigo is null or not (codigo=any($1::text[])))`, [catalogs.contas.map((item) => item.codigo)]);
-    await client.query(`update grupos_contas set ativo=false where catalogo='FILIAL' and (codigo is null or not (codigo=any($1::text[])))`, [catalogs.grupos.map((item) => item.codigo)]);
     const catalogCleanupMigration = await client.query(`select 1 from migracoes where versao='007_remover_grupos_obsoletos'`);
     if (!catalogCleanupMigration.rowCount) {
       await client.query(`
-        update contas c set ativo=false
+        update contas c set ativo=true
         from grupos_contas g
         where g.id=c.grupo_conta_id and g.catalogo='FILIAL' and g.codigo=any($1::text[])
       `, [gruposRemovidos]);
       await client.query(`update grupos_contas set ativo=false where catalogo='FILIAL' and codigo=any($1::text[])`, [gruposRemovidos]);
-      await client.query(`
-        delete from orcamentos_contas o
-        using contas c, grupos_contas g
-        where o.conta_id=c.id and c.grupo_conta_id=g.id and g.catalogo='FILIAL' and g.codigo=any($1::text[])
-      `, [gruposRemovidos]);
-      await client.query(`
-        delete from contas c
-        using grupos_contas g
-        where c.grupo_conta_id=g.id
-          and g.catalogo='FILIAL' and g.codigo=any($1::text[])
-          and not exists (select 1 from lancamentos l where l.conta_id=c.id)
-      `, [gruposRemovidos]);
-      await client.query(`
-        delete from grupos_contas g
-        where g.catalogo='FILIAL' and g.codigo=any($1::text[])
-          and not exists (select 1 from contas c where c.grupo_conta_id=g.id)
-          and not exists (select 1 from lancamentos l where l.grupo_conta_id=g.id)
-      `, [gruposRemovidos]);
       await client.query(`insert into migracoes (versao) values ('007_remover_grupos_obsoletos')`);
     }
     await client.query(`
@@ -270,7 +250,7 @@ export async function migrate(): Promise<void> {
       select 'MATRIZ', x.codigo, x.nome, x.cor, true
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, cor text)
       on conflict (catalogo, codigo) where codigo is not null
-      do update set nome=excluded.nome, cor=excluded.cor, ativo=true
+      do nothing
     `, [JSON.stringify(matrixCatalogs.grupos)]);
     await client.query(`
       insert into contas (catalogo, codigo, grupo_conta_id, nome, ativo)
@@ -278,10 +258,39 @@ export async function migrate(): Promise<void> {
       from jsonb_to_recordset($1::jsonb) as x(codigo text, nome text, grupocodigo text)
       join grupos_contas g on g.catalogo='MATRIZ' and g.codigo=x.grupocodigo
       on conflict (catalogo, codigo) where codigo is not null
-      do update set grupo_conta_id=excluded.grupo_conta_id, nome=excluded.nome, ativo=true
+      do nothing
     `, [JSON.stringify(matrixCatalogs.contas)]);
-    await client.query(`update contas set ativo=false where catalogo='MATRIZ' and (codigo is null or not (codigo=any($1::text[])))`, [matrixCatalogs.contas.map((item) => item.codigo)]);
-    await client.query(`update grupos_contas set ativo=false where catalogo='MATRIZ' and (codigo is null or not (codigo=any($1::text[])))`, [matrixCatalogs.grupos.map((item) => item.codigo)]);
+    const catalogSyncMigration = await client.query(`select 1 from migracoes where versao='010_sincronizacao_catalogos'`);
+    if (!catalogSyncMigration.rowCount) {
+      await client.query(`drop index if exists uq_grupos_contas_catalogo_nome`);
+      await client.query(`alter table grupos_contas add column if not exists presente_origem boolean not null default true`);
+      await client.query(`alter table contas add column if not exists presente_origem boolean not null default true`);
+      await client.query(`update grupos_contas set presente_origem=true`);
+      await client.query(`update contas set presente_origem=true`);
+      await client.query(`
+        update contas c set ativo=true
+        from grupos_contas g
+        where g.id=c.grupo_conta_id and g.catalogo='FILIAL' and g.codigo=any($1::text[])
+      `, [gruposRemovidos]);
+      await client.query(`update grupos_contas set ativo=false where catalogo='FILIAL' and codigo=any($1::text[])`, [gruposRemovidos]);
+      await client.query(`
+        create table if not exists auditoria_catalogos (
+          id bigserial primary key,
+          entidade_tipo varchar(20) not null check (entidade_tipo in ('GRUPO_CONTA', 'CONTA')),
+          entidade_id bigint not null,
+          catalogo varchar(20) not null,
+          codigo varchar(30) not null,
+          acao varchar(20) not null check (acao in ('ATIVACAO', 'INATIVACAO')),
+          usuario_id bigint not null references usuarios(id),
+          usuario_nome varchar(120) not null,
+          dados_anteriores jsonb,
+          dados_novos jsonb,
+          ocorrido_em timestamptz not null default now()
+        )
+      `);
+      await client.query(`create index if not exists idx_auditoria_catalogos on auditoria_catalogos(entidade_tipo,entidade_id,ocorrido_em desc)`);
+      await client.query(`insert into migracoes (versao) values ('010_sincronizacao_catalogos')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

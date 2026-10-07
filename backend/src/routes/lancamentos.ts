@@ -59,7 +59,8 @@ async function validateAccess(client: PoolClient, user: AuthUser, payload: Recor
         select 1 from contas c
         join grupos_contas g on g.id=c.grupo_conta_id and g.catalogo=c.catalogo
         join sedes s on s.id=$2 and s.catalogo_contas=c.catalogo
-        where c.id=$4 and c.grupo_conta_id=$5 and c.ativo and g.ativo
+        where c.id=$4 and c.grupo_conta_id=$5 and c.ativo and c.presente_origem
+          and g.ativo and g.presente_origem
       ) as conta`,
     [user.id, sedeId, centroCustoId, contaId, grupoContaId],
   );

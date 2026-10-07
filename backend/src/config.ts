@@ -34,6 +34,7 @@ export const config = {
     audience: process.env.ECOSYSTEM_SSO_AUDIENCE || 'lancamentos',
     secret: (process.env.ECOSYSTEM_SSO_SHARED_SECRET || '').trim(),
   },
+  catalogSyncToken: (process.env.CATALOG_SYNC_TOKEN || '').trim(),
 };
 
 if (config.nodeEnv === 'production') {
@@ -41,6 +42,7 @@ if (config.nodeEnv === 'production') {
   if (!process.env.ADMIN_PASSWORD || config.admin.password === 'Admin@123') throw new Error('ADMIN_PASSWORD seguro é obrigatório em produção.');
   if (!process.env.CORS_ALLOWED_ORIGINS) throw new Error('CORS_ALLOWED_ORIGINS é obrigatório em produção.');
   if (config.sso.enabled && config.sso.secret.length < 32) throw new Error('ECOSYSTEM_SSO_SHARED_SECRET deve ter ao menos 32 caracteres quando o SSO está habilitado.');
+  if (config.catalogSyncToken.length < 32) throw new Error('CATALOG_SYNC_TOKEN deve ter ao menos 32 caracteres em produção.');
 }
 
 process.env.TZ = config.timezone;

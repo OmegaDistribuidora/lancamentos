@@ -36,11 +36,11 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
             where uc.usuario_id=$1 and c.ativo order by c.sede_id, c.nome
           `, [user.id]),
       admin
-        ? pool.query(`select id, codigo, nome, cor, catalogo from grupos_contas where ativo order by catalogo,codigo`)
-        : pool.query(`select distinct g.id,g.codigo,g.nome,g.cor,g.catalogo from grupos_contas g join sedes s on s.catalogo_contas=g.catalogo join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and g.ativo and s.ativo order by g.catalogo,g.codigo`, [user.id]),
+        ? pool.query(`select id, codigo, nome, cor, catalogo from grupos_contas where ativo and presente_origem order by catalogo,codigo`)
+        : pool.query(`select distinct g.id,g.codigo,g.nome,g.cor,g.catalogo from grupos_contas g join sedes s on s.catalogo_contas=g.catalogo join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and g.ativo and g.presente_origem and s.ativo order by g.catalogo,g.codigo`, [user.id]),
       admin
-        ? pool.query(`select id, codigo, grupo_conta_id as "grupoContaId", nome, catalogo from contas where ativo order by catalogo,codigo`)
-        : pool.query(`select distinct c.id,c.codigo,c.grupo_conta_id as "grupoContaId",c.nome,c.catalogo from contas c join sedes s on s.catalogo_contas=c.catalogo join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and c.ativo and s.ativo order by c.catalogo,c.codigo`, [user.id]),
+        ? pool.query(`select c.id,c.codigo,c.grupo_conta_id as "grupoContaId",c.nome,c.catalogo from contas c join grupos_contas g on g.id=c.grupo_conta_id where c.ativo and c.presente_origem and g.ativo and g.presente_origem order by c.catalogo,c.codigo`)
+        : pool.query(`select distinct c.id,c.codigo,c.grupo_conta_id as "grupoContaId",c.nome,c.catalogo from contas c join grupos_contas g on g.id=c.grupo_conta_id join sedes s on s.catalogo_contas=c.catalogo join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and c.ativo and c.presente_origem and g.ativo and g.presente_origem and s.ativo order by c.catalogo,c.codigo`, [user.id]),
       isPrivileged(user)
         ? pool.query(`select id, nome_exibicao as nome from usuarios where ativo order by nome_exibicao`)
         : Promise.resolve({ rows: [{ id: user.id, nome: user.nomeExibicao }] }),
@@ -62,14 +62,14 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
         select g.id,g.codigo,g.nome,g.cor,count(c.id)::int as "quantidadeContas",
           coalesce(sum(coalesce(o.valor,0)) filter(where c.ativo),0)::float8 as orcamento
         from grupos_contas g
-        left join contas c on c.grupo_conta_id=g.id and c.ativo
+        left join contas c on c.grupo_conta_id=g.id and c.ativo and c.presente_origem
         left join lateral (
           select historico.valor
           from orcamentos_contas historico
           where historico.conta_id=c.id and historico.sede_id=$1 and historico.competencia <= $2::date
           order by historico.competencia desc limit 1
         ) o on true
-        where g.ativo and g.catalogo=$3 group by g.id order by g.codigo`, [sedeId, month, catalogo]),
+        where g.ativo and g.presente_origem and g.catalogo=$3 group by g.id order by g.codigo`, [sedeId, month, catalogo]),
       pool.query(`
         select c.id,c.codigo,c.nome,c.grupo_conta_id as "grupoContaId",g.nome as "grupoConta",
           coalesce(o.valor,0)::float8 as orcamento,
@@ -82,7 +82,7 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
           where historico.conta_id=c.id and historico.sede_id=$1 and historico.competencia <= $2::date
           order by historico.competencia desc limit 1
         ) o on true
-        where c.ativo and c.catalogo=$3 and g.catalogo=$3 order by g.codigo,c.codigo`, [sedeId, month, catalogo]),
+        where c.ativo and c.presente_origem and g.ativo and g.presente_origem and c.catalogo=$3 and g.catalogo=$3 order by g.codigo,c.codigo`, [sedeId, month, catalogo]),
     ]);
     return { gruposContas: grupos.rows, contas: contas.rows, sedes: sedes.rows, sedeId, competencia: month.slice(0, 7) };
   });
@@ -138,8 +138,10 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
     const month = competencia(body?.competencia);
     const result = await pool.query(`
       insert into orcamentos_contas (conta_id,sede_id,competencia,valor,atualizado_por)
-      select c.id,s.id,$1::date,$2,$3 from contas c cross join sedes s
-      where c.id=$4 and c.ativo and s.id=$5 and s.ativo and c.catalogo=s.catalogo_contas
+      select c.id,s.id,$1::date,$2,$3 from contas c
+      join grupos_contas g on g.id=c.grupo_conta_id cross join sedes s
+      where c.id=$4 and c.ativo and c.presente_origem and g.ativo and g.presente_origem
+        and s.id=$5 and s.ativo and c.catalogo=s.catalogo_contas
       on conflict (conta_id,sede_id,competencia) do update
       set valor=excluded.valor, atualizado_por=excluded.atualizado_por, atualizado_em=now()
       returning conta_id as id,valor::float8 as orcamento`,

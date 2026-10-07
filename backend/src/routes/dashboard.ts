@@ -104,14 +104,15 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
     const range = `and l.data_pagamento between ${startRef}::date and ${endRef}::date`;
     const filters = launchFilters.join(' ');
     const totalBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
-      from contas c join sedes s on s.catalogo_contas=c.catalogo
+      from contas c join grupos_contas cg on cg.id=c.grupo_conta_id
+      join sedes s on s.catalogo_contas=c.catalogo
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
       left join lateral (
         select historico.valor from orcamentos_contas historico
         where historico.conta_id=c.id and historico.sede_id=s.id and historico.competencia <= mes.competencia::date
         order by historico.competencia desc limit 1
       ) o on true
-      where c.ativo and s.ativo ${budgetSedeFilter})`;
+      where c.ativo and c.presente_origem and cg.ativo and cg.presente_origem and s.ativo ${budgetSedeFilter})`;
     const groupBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
       from contas c join sedes s on s.catalogo_contas=c.catalogo
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
@@ -120,7 +121,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
         where historico.conta_id=c.id and historico.sede_id=s.id and historico.competencia <= mes.competencia::date
         order by historico.competencia desc limit 1
       ) o on true
-      where c.grupo_conta_id=g.id and c.catalogo=g.catalogo and c.ativo and s.ativo ${budgetSedeFilter})`;
+      where c.grupo_conta_id=g.id and c.catalogo=g.catalogo and c.ativo and c.presente_origem and s.ativo ${budgetSedeFilter})`;
 
     const [cards, evolution, groups, recent] = await Promise.all([
       pool.query(`
@@ -131,9 +132,11 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
       pool.query(evolutionSql(period.granularidade, startRef, endRef, filters), params),
       pool.query(`
         select g.nome, g.cor, coalesce(sum(l.valor),0)::float8 as total,
-          ${groupBudget} as orcamento
+          case when g.ativo and g.presente_origem then ${groupBudget} else 0 end as orcamento
         from grupos_contas g left join lancamentos l on l.grupo_conta_id=g.id and l.excluido_em is null ${filters} ${range}
-        where g.ativo group by g.id,g.nome,g.cor order by total desc,g.codigo`, params),
+        group by g.id,g.nome,g.cor
+        having (g.ativo and g.presente_origem) or count(l.numero_lancamento)>0
+        order by total desc,g.codigo`, params),
       pool.query(`
         select l.numero_lancamento as "numeroLancamento", l.data_pagamento::text as "dataPagamento", c.nome as conta,
           g.nome as "grupoConta", g.cor, u.nome_exibicao as colaborador, l.valor::float8 as valor

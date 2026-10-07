@@ -1,1046 +1,1452 @@
 {
+  "origem": "Oracle WinThor Filial",
   "grupos": [
+    {
+      "codigo": "100",
+      "nome": "PAGTOS ASSOCIADOS AO CMV",
+      "cor": "#2563eb"
+    },
+    {
+      "codigo": "101",
+      "nome": "VENDA FATURADA",
+      "cor": "#16a34a"
+    },
+    {
+      "codigo": "102",
+      "nome": "CMV DA VENDA FATURADA",
+      "cor": "#ea580c"
+    },
+    {
+      "codigo": "103",
+      "nome": "SALDO BRUTO",
+      "cor": "#7c3aed"
+    },
+    {
+      "codigo": "104",
+      "nome": "% SALDO BRUTO",
+      "cor": "#db2777"
+    },
     {
       "codigo": "200",
       "nome": "DESPESAS COM VENDAS",
-      "cor": "#eab308"
+      "cor": "#0891b2"
     },
     {
       "codigo": "201",
       "nome": "DESPESAS COM ESCRITORIOS DE VENDAS",
-      "cor": "#f59e0b"
+      "cor": "#ca8a04"
+    },
+    {
+      "codigo": "202",
+      "nome": "COMPRA DE MERCADORIAS",
+      "cor": "#4f46e5"
+    },
+    {
+      "codigo": "250",
+      "nome": "VERBAS / DESPESAS DEPTO COMPRAS",
+      "cor": "#059669"
     },
     {
       "codigo": "300",
       "nome": "DESPESAS ADMINISTRATIVAS",
-      "cor": "#ec4899"
+      "cor": "#dc2626"
     },
     {
       "codigo": "301",
       "nome": "DESPESAS / RECEITAS FINANCEIRAS",
-      "cor": "#a855f7"
+      "cor": "#2563eb"
     },
     {
       "codigo": "302",
       "nome": "DESPESAS TRIBUTARIAS",
-      "cor": "#8b5cf6"
+      "cor": "#16a34a"
     },
     {
       "codigo": "400",
       "nome": "DESPESAS COM ENTREGAS",
-      "cor": "#6366f1"
+      "cor": "#ea580c"
     },
     {
       "codigo": "401",
       "nome": "DESPESAS COM TRANSPORTE",
-      "cor": "#2563eb"
+      "cor": "#7c3aed"
     },
     {
       "codigo": "402",
       "nome": "DESPESAS CENTRO DISTRIBUICAO",
-      "cor": "#0ea5e9"
+      "cor": "#db2777"
     },
     {
       "codigo": "403",
       "nome": "DESPESAS CD DE JUAZEIRO DO NORTE",
-      "cor": "#14b8a6"
+      "cor": "#0891b2"
+    },
+    {
+      "codigo": "404",
+      "nome": "DESPESAS E RECEITAS CD DE SOBRAL - CE",
+      "cor": "#ca8a04"
     },
     {
       "codigo": "500",
       "nome": "DESPESAS INFORMATICA",
-      "cor": "#84cc16"
+      "cor": "#4f46e5"
     },
     {
       "codigo": "600",
       "nome": "DESPESAS RECURSOS HUMANOS",
-      "cor": "#eab308"
+      "cor": "#059669"
     },
     {
       "codigo": "700",
       "nome": "OUTROS CENTROS DE CUSTO",
-      "cor": "#f59e0b"
+      "cor": "#dc2626"
+    },
+    {
+      "codigo": "800",
+      "nome": "CONTROLE INTERNO DE FILIAIS",
+      "cor": "#2563eb"
     },
     {
       "codigo": "900",
       "nome": "DESPESAS DIRETORIA GERAL",
-      "cor": "#ef4444"
+      "cor": "#16a34a"
+    },
+    {
+      "codigo": "990",
+      "nome": "TOTAL DE DESPESAS",
+      "cor": "#ea580c"
+    },
+    {
+      "codigo": "991",
+      "nome": "VALOR SALDO LIQUIDO",
+      "cor": "#7c3aed"
+    },
+    {
+      "codigo": "992",
+      "nome": "% SALDO LIQUIDO",
+      "cor": "#db2777"
     },
     {
       "codigo": "993",
       "nome": "INVESTIMENTOS",
-      "cor": "#6366f1"
+      "cor": "#0891b2"
     },
     {
       "codigo": "994",
       "nome": "TOTAL INVESTIMENTOS",
+      "cor": "#ca8a04"
+    },
+    {
+      "codigo": "995",
+      "nome": "VALOR SALDO FINAL",
+      "cor": "#4f46e5"
+    },
+    {
+      "codigo": "996",
+      "nome": "% SALDO FINAL",
+      "cor": "#059669"
+    },
+    {
+      "codigo": "997",
+      "nome": "IMOBILIZADO",
+      "cor": "#dc2626"
+    },
+    {
+      "codigo": "998",
+      "nome": "RECEITAS NÃO OPERACIONAL",
       "cor": "#2563eb"
+    },
+    {
+      "codigo": "999",
+      "nome": "ANORMALIDADES",
+      "cor": "#16a34a"
     }
   ],
   "contas": [
     {
+      "codigo": "37",
+      "nome": "*** TEMPORARIA ***",
+      "grupocodigo": "900"
+    },
+    {
+      "codigo": "99",
+      "nome": "ANORMALIDADES",
+      "grupocodigo": "999"
+    },
+    {
+      "codigo": "101",
+      "nome": "VENDA FATURADA",
+      "grupocodigo": "101"
+    },
+    {
+      "codigo": "102",
+      "nome": "CMV DA VENDA FATURADA",
+      "grupocodigo": "102"
+    },
+    {
+      "codigo": "103",
+      "nome": "SALDO BRUTO",
+      "grupocodigo": "103"
+    },
+    {
+      "codigo": "104",
+      "nome": "% SALDO BRUTO",
+      "grupocodigo": "104"
+    },
+    {
+      "codigo": "105",
+      "nome": "DEVOLUCAO DE CLIENTES",
+      "grupocodigo": "101"
+    },
+    {
+      "codigo": "106",
+      "nome": "CMV DE DEVOLUCAO DE CLIENTES",
+      "grupocodigo": "102"
+    },
+    {
+      "codigo": "107",
+      "nome": "OUTROS FATURAMENTOS",
+      "grupocodigo": "101"
+    },
+    {
+      "codigo": "990",
+      "nome": "TOTAL DE DESPESAS",
+      "grupocodigo": "990"
+    },
+    {
+      "codigo": "991",
+      "nome": "VALOR SALDO LIQUIDO",
+      "grupocodigo": "991"
+    },
+    {
+      "codigo": "992",
+      "nome": "% SALDO LIQUIDO",
+      "grupocodigo": "992"
+    },
+    {
+      "codigo": "994",
+      "nome": "TOTAL INVESTIMENTOS",
+      "grupocodigo": "994"
+    },
+    {
+      "codigo": "995",
+      "nome": "VALOR SALDO FINAL",
+      "grupocodigo": "995"
+    },
+    {
+      "codigo": "996",
+      "nome": "% SALDO FINAL",
+      "grupocodigo": "996"
+    },
+    {
+      "codigo": "10026",
+      "nome": "CONTROLE CONSUMO INTERNO",
+      "grupocodigo": "300"
+    },
+    {
+      "codigo": "10031",
+      "nome": "FRETES DE MERCADORIAS",
+      "grupocodigo": "101"
+    },
+    {
+      "codigo": "100001",
+      "nome": "COMPRA MERCADORIA PARA REVENDA",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100002",
+      "nome": "FRETES DE MERCADORIA",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100003",
+      "nome": "OUTROS CUSTOS DE MERC.REVENDA",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100010",
+      "nome": "COMISSAO DE VENDEDORES",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100011",
+      "nome": "PIS (SE ESTIVER NO CMV)",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100012",
+      "nome": "COFINS (SE ESTIVER NO CMV)",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100013",
+      "nome": "CPMF (SE ESTIVER NO CMV)",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100014",
+      "nome": "IRPJ (SE ESTIVER NO CMV)",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100015",
+      "nome": "CSSL (SE ESTIVER NO CMV)",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100016",
+      "nome": "** MIGRADO NAO USAR ***",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100017",
+      "nome": "SUBSTITUICAO TRIBUTARIA NA VENDA",
+      "grupocodigo": "100"
+    },
+    {
       "codigo": "100020",
-      "nome": "Devolucao De Cliente",
+      "nome": "DEVOLUCAO DE CLIENTE",
       "grupocodigo": "200"
     },
     {
+      "codigo": "100021",
+      "nome": "RESTITUICAO A FORNECEDOR",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100022",
+      "nome": "VERBA PARA CMV",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100023",
+      "nome": "EMPRERIMOS EM BANCOS",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100024",
+      "nome": "AJUSTE DE CAIXA/BANCO",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100025",
+      "nome": "BOLETOS TESTE",
+      "grupocodigo": "100"
+    },
+    {
+      "codigo": "100026",
+      "nome": "TAXAS PORTUARIAS",
+      "grupocodigo": "100"
+    },
+    {
       "codigo": "200001",
-      "nome": "Salarios (Supervissao ) - Vendas",
+      "nome": "SALARIOS (SUPERVISSAO ) - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200002",
-      "nome": "Decimo Terceiro Salario - Vendas",
+      "nome": "DECIMO TERCEIRO SALARIO - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200003",
-      "nome": "Descontos Concedidos Em Vendas",
+      "nome": "DESCONTOS CONCEDIDOS EM VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200004",
-      "nome": "Ferias - Vendedores - Vendas",
+      "nome": "FERIAS - VENDEDORES - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200005",
-      "nome": "Rescisoes Trabalhistas - Vendedores",
+      "nome": "RESCISOES TRABALHISTAS - VENDEDORES",
       "grupocodigo": "200"
     },
     {
       "codigo": "200006",
-      "nome": "Combustivel Em Viagens - Vendas",
+      "nome": "COMBUSTIVEL EM VIAGENS - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200007",
-      "nome": "Telefone  Apoio/ Televendas",
+      "nome": "TELEFONE  APOIO/ TELEVENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200008",
-      "nome": "Telefone (Forca De Vendas)",
+      "nome": "TELEFONE (FORCA DE VENDAS)",
       "grupocodigo": "200"
     },
     {
       "codigo": "200009",
-      "nome": "Dados Para Força De Vendas",
+      "nome": "DADOS PARA FORÇA DE VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200011",
-      "nome": "Alimentacao Pessoal Vendas",
+      "nome": "ALIMENTACAO PESSOAL VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200012",
-      "nome": "Premiacao E Campanhas De Vendas",
+      "nome": "PREMIACAO E CAMPANHAS DE VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200014",
-      "nome": "Correios E Postagens - Vendas",
+      "nome": "CORREIOS E POSTAGENS - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200015",
-      "nome": "Reunioes E Treinamentos Equipe Vendas",
+      "nome": "REUNIOES E TREINAMENTOS EQUIPE VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200016",
-      "nome": "Honorarios Advocaticios - Vendas",
+      "nome": "HONORARIOS ADVOCATICIOS - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200018",
-      "nome": "Feiras/ Eventos/ Lancamentos - Vendas",
+      "nome": "FEIRAS/ EVENTOS/ LANCAMENTOS - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200019",
-      "nome": "Alimentacao Em Viagens - Vendas",
+      "nome": "ALIMENTACAO EM VIAGENS - VENDAS",
       "grupocodigo": "200"
     },
     {
+      "codigo": "200020",
+      "nome": "PGTO FORNECEDOR MATRIZ",
+      "grupocodigo": "202"
+    },
+    {
       "codigo": "200021",
-      "nome": "Estadias Em Viagens  - Vendas",
+      "nome": "ESTADIAS EM VIAGENS  - VENDAS",
       "grupocodigo": "200"
     },
     {
       "codigo": "200022",
-      "nome": "Ajuda De Custo - Rca",
-      "grupocodigo": "200"
-    },
-    {
-      "codigo": "402021",
-      "nome": "* Encarte/Ponto Extra",
+      "nome": "AJUDA DE CUSTO - RCA",
       "grupocodigo": "200"
     },
     {
       "codigo": "201002",
-      "nome": "Rescisoes Trabalhistas",
+      "nome": "RESCISOES TRABALHISTAS",
       "grupocodigo": "201"
     },
     {
+      "codigo": "201005",
+      "nome": "CORREIO/ MALOTES - ADM",
+      "grupocodigo": "300"
+    },
+    {
       "codigo": "201010",
-      "nome": "Alimentação Equipe Em  Campo",
+      "nome": "ALIMENTAÇÃO EQUIPE EM  CAMPO",
       "grupocodigo": "201"
     },
     {
       "codigo": "201011",
-      "nome": "Material De Limpeza",
+      "nome": "MATERIAL DE LIMPEZA",
       "grupocodigo": "201"
     },
     {
       "codigo": "201012",
-      "nome": "Ajuda Combustivel",
+      "nome": "AJUDA COMBUSTIVEL",
       "grupocodigo": "201"
     },
     {
-      "codigo": "10026",
-      "nome": "Controle Consumo Interno",
-      "grupocodigo": "300"
+      "codigo": "202001",
+      "nome": "COMPRA DE MERCADORIA PARA VENDA",
+      "grupocodigo": "202"
     },
     {
-      "codigo": "201005",
-      "nome": "Correio/ Malotes - Adm",
-      "grupocodigo": "300"
+      "codigo": "202002",
+      "nome": "PAG. ANTECIPADO MERCADORIAS",
+      "grupocodigo": "202"
+    },
+    {
+      "codigo": "202003",
+      "nome": "PAG. ADIANTAMENTO A FORNECEDOR",
+      "grupocodigo": "202"
+    },
+    {
+      "codigo": "202004",
+      "nome": "PAG. FORNECEDORES DIVERSOS",
+      "grupocodigo": "202"
+    },
+    {
+      "codigo": "202005",
+      "nome": "ACRESCIMOS NOS CUSTOS",
+      "grupocodigo": "202"
+    },
+    {
+      "codigo": "250001",
+      "nome": "VB CAMPANHAS/ PROM./INCENTIVOS",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250002",
+      "nome": "VB AVARIAS E DEVOLUCOES",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250003",
+      "nome": "VB INAUGURACAO",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250004",
+      "nome": "VB MARGEM ADICIONAL",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250005",
+      "nome": "VB ANIVERSARIO",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250006",
+      "nome": "VB COMISSAO ADICIONAL",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250007",
+      "nome": "VB VIAGENS E REPRESENTACOES",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250008",
+      "nome": "VB FORMULARIOS E NOTAS FISCAIS",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250009",
+      "nome": "VB PARA REBAIXA DE CUSTO DE MERCADORIA",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250010",
+      "nome": "VERBA TRANSITÓRIA PARA USO NAS DESPESAS",
+      "grupocodigo": "250"
+    },
+    {
+      "codigo": "250999",
+      "nome": "ADIANT.FORNEC.MERC.REVENDA ***",
+      "grupocodigo": "202"
     },
     {
       "codigo": "300001",
-      "nome": "Salarios - Adm",
+      "nome": "SALARIOS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300002",
-      "nome": "Ferias - Adm",
+      "nome": "FERIAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300003",
-      "nome": "13o. Salario - Adm",
+      "nome": "13o. SALARIO - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300004",
-      "nome": "Gratificacoes Pessoal - Adm",
+      "nome": "GRATIFICACOES PESSOAL - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300005",
-      "nome": "Rescisoes Trabalhistas - Adm",
+      "nome": "RESCISOES TRABALHISTAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300006",
-      "nome": "Agua E Esgoto - Adm",
+      "nome": "AGUA E ESGOTO - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300007",
-      "nome": "Alugueis E Condominios - Adm",
+      "nome": "ALUGUEIS E CONDOMINIOS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300008",
-      "nome": "Conducoes Urbanas",
+      "nome": "CONDUCOES URBANAS",
       "grupocodigo": "300"
     },
     {
       "codigo": "300009",
-      "nome": "Contribuicoes E Doacoes - Adm",
+      "nome": "CONTRIBUICOES E DOACOES - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300010",
-      "nome": "Cartorio / Taxas - Adm",
+      "nome": "CARTORIO / TAXAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300012",
-      "nome": "Taxas De Orgaõs Reguladores",
+      "nome": "TAXAS DE ORGAÕS REGULADORES",
       "grupocodigo": "300"
     },
     {
       "codigo": "300013",
-      "nome": "Energia Eletrica - Adm",
+      "nome": "ENERGIA ELETRICA - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300014",
-      "nome": "Fotocopias - Adm",
+      "nome": "FOTOCOPIAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300015",
-      "nome": "Impressos E Formularios - Adm",
+      "nome": "IMPRESSOS E FORMULARIOS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300016",
-      "nome": "Livros / Jornais / Revistas - Adm",
+      "nome": "LIVROS / JORNAIS / REVISTAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300017",
-      "nome": "Material Para Oficina - Diversos",
+      "nome": "MATERIAL PARA OFICINA - DIVERSOS",
       "grupocodigo": "300"
     },
     {
       "codigo": "300018",
-      "nome": "Material De Consumo / Expediente - Adm",
+      "nome": "MATERIAL DE CONSUMO / EXPEDIENTE - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300019",
-      "nome": "Lanches E Refeicoes - Adm",
+      "nome": "LANCHES E REFEICOES - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300020",
-      "nome": "Sindicatos E Associacoes - Adm",
+      "nome": "SINDICATOS E ASSOCIACOES - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300021",
-      "nome": "Vale Transporte - Adm",
+      "nome": "VALE TRANSPORTE - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300022",
-      "nome": "Telefone Fixo - Adm",
+      "nome": "TELEFONE FIXO - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300023",
-      "nome": "Moveis E Equipamentos De Peq. Valor",
+      "nome": "MOVEIS E EQUIPAMENTOS DE PEQ. VALOR",
       "grupocodigo": "300"
     },
     {
       "codigo": "300024",
-      "nome": "Viagens E Estadias - Adm",
+      "nome": "VIAGENS E ESTADIAS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300025",
-      "nome": "Manutencao E Conservacao Predial",
+      "nome": "MANUTENCAO E CONSERVACAO PREDIAL",
       "grupocodigo": "300"
     },
     {
       "codigo": "300026",
-      "nome": "Honorarios Advocaticios - Adm",
+      "nome": "HONORARIOS ADVOCATICIOS - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300027",
-      "nome": "Honorarios Contabilidade - Adm",
+      "nome": "HONORARIOS CONTABILIDADE - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300028",
-      "nome": "Despesas De Alimentaçao -Cantina - Adm",
+      "nome": "DESPESAS DE ALIMENTAÇAO -CANTINA - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300029",
-      "nome": "Material De Escritorio - Adm",
+      "nome": "MATERIAL DE ESCRITORIO - ADM",
       "grupocodigo": "300"
     },
     {
       "codigo": "300030",
-      "nome": "Acerto De Saldo - Para Menor",
+      "nome": "ACERTO DE SALDO - PARA MENOR",
       "grupocodigo": "300"
     },
     {
       "codigo": "300031",
-      "nome": "Acerto De Saldo - Para Maior",
+      "nome": "ACERTO DE SALDO - PARA MAIOR",
       "grupocodigo": "300"
     },
     {
       "codigo": "300032",
-      "nome": "Reforma Galpão",
+      "nome": "REFORMA GALPÃO",
       "grupocodigo": "300"
     },
     {
       "codigo": "300033",
-      "nome": "Consumo Interno",
+      "nome": "CONSUMO INTERNO",
       "grupocodigo": "300"
     },
     {
       "codigo": "300034",
-      "nome": "Embalagens",
+      "nome": "EMBALAGENS",
       "grupocodigo": "300"
     },
     {
       "codigo": "300035",
-      "nome": "Imobilizado",
+      "nome": "IMOBILIZADO",
       "grupocodigo": "300"
     },
     {
       "codigo": "300036",
-      "nome": "Combustível",
+      "nome": "COMBUSTÍVEL",
       "grupocodigo": "300"
     },
     {
       "codigo": "300037",
-      "nome": "Segurança Patrimonial",
-      "grupocodigo": "300"
-    },
-    {
-      "codigo": "401002",
-      "nome": "Cipa E Material De Seguranca",
-      "grupocodigo": "300"
-    },
-    {
-      "codigo": "401005",
-      "nome": "Rescisoes Contratuais - Motoristas",
-      "grupocodigo": "300"
-    },
-    {
-      "codigo": "401011",
-      "nome": "Salarios - Transporte",
-      "grupocodigo": "300"
-    },
-    {
-      "codigo": "402002",
-      "nome": "Cipa E Material De Seguranca - Cd",
+      "nome": "SEGURANÇA PATRIMONIAL",
       "grupocodigo": "300"
     },
     {
       "codigo": "301001",
-      "nome": "Descontos Obtidos",
+      "nome": "DESCONTOS OBTIDOS",
       "grupocodigo": "301"
     },
     {
       "codigo": "301002",
-      "nome": "Juros Recebidos",
+      "nome": "JUROS RECEBIDOS",
       "grupocodigo": "301"
     },
     {
       "codigo": "301003",
-      "nome": "Desconto Ref. Antecipacao Pagto Fornec.",
+      "nome": "DESCONTO REF. ANTECIPACAO PAGTO FORNEC.",
       "grupocodigo": "301"
     },
     {
       "codigo": "301004",
-      "nome": "Multa E Juros De Mora",
+      "nome": "MULTA E JUROS DE MORA",
       "grupocodigo": "301"
     },
     {
       "codigo": "301005",
-      "nome": "Iof",
+      "nome": "IOF",
       "grupocodigo": "301"
     },
     {
       "codigo": "301006",
-      "nome": "Recuperacao De Credito Nao Liquidado",
+      "nome": "RECUPERACAO DE CREDITO NAO LIQUIDADO",
       "grupocodigo": "301"
     },
     {
       "codigo": "301007",
-      "nome": "Rendimentos De Aplicacoes",
+      "nome": "RENDIMENTOS DE APLICACOES",
       "grupocodigo": "301"
     },
     {
       "codigo": "301008",
-      "nome": "Consulta De Credito",
+      "nome": "CONSULTA DE CREDITO",
       "grupocodigo": "301"
     },
     {
       "codigo": "301009",
-      "nome": "Tarifas Bancarias",
+      "nome": "TARIFAS BANCARIAS",
       "grupocodigo": "301"
     },
     {
       "codigo": "301010",
-      "nome": "Perdas E Devedores Duvidosos",
+      "nome": "PERDAS E DEVEDORES DUVIDOSOS",
       "grupocodigo": "301"
     },
     {
       "codigo": "301011",
-      "nome": "Desconto Financeiros",
+      "nome": "DESCONTO FINANCEIROS",
       "grupocodigo": "301"
     },
     {
       "codigo": "301012",
-      "nome": "Titulos Recebidos A Maior",
+      "nome": "TITULOS RECEBIDOS A MAIOR",
       "grupocodigo": "301"
     },
     {
       "codigo": "301013",
-      "nome": "Emprestimo / Cap. De Giro",
+      "nome": "EMPRESTIMO / CAP. DE GIRO",
       "grupocodigo": "301"
     },
     {
       "codigo": "301014",
-      "nome": "Juros Conta Garantida/Emprestimos",
-      "grupocodigo": "301"
-    },
-    {
-      "codigo": "402007",
-      "nome": "Despesas Com Reciclagem",
-      "grupocodigo": "301"
-    },
-    {
-      "codigo": "700004",
-      "nome": "Receitas Com Reciclagem",
+      "nome": "JUROS CONTA GARANTIDA/EMPRESTIMOS",
       "grupocodigo": "301"
     },
     {
       "codigo": "302001",
-      "nome": "Icms Normal (Se Nao Estiver No Cmv)",
+      "nome": "ICMS NORMAL (SE NAO ESTIVER NO CMV)",
       "grupocodigo": "302"
     },
     {
       "codigo": "302002",
-      "nome": "Pis (Se Nao Estiver No Cmv)",
+      "nome": "PIS (SE NAO ESTIVER NO CMV)",
       "grupocodigo": "302"
     },
     {
       "codigo": "302003",
-      "nome": "Cofins (Se Nao Estiver No Cmv)",
+      "nome": "COFINS (SE NAO ESTIVER NO CMV)",
       "grupocodigo": "302"
     },
     {
       "codigo": "302004",
-      "nome": "Cpmf (Se Nao Estiver No Cmv)",
+      "nome": "CPMF (SE NAO ESTIVER NO CMV)",
       "grupocodigo": "302"
     },
     {
       "codigo": "302005",
-      "nome": "Irpj",
+      "nome": "IRPJ",
       "grupocodigo": "302"
     },
     {
       "codigo": "302006",
-      "nome": "Csll",
+      "nome": "CSLL",
       "grupocodigo": "302"
     },
     {
       "codigo": "302007",
-      "nome": "Iptu",
+      "nome": "IPTU",
       "grupocodigo": "302"
     },
     {
       "codigo": "302008",
-      "nome": "Outros Tributos Municipais",
+      "nome": "OUTROS TRIBUTOS MUNICIPAIS",
       "grupocodigo": "302"
     },
     {
       "codigo": "302009",
-      "nome": "Outros Tributos Estaduais",
+      "nome": "OUTROS TRIBUTOS ESTADUAIS",
       "grupocodigo": "302"
     },
     {
       "codigo": "302010",
-      "nome": "Outros Tributos Federais",
+      "nome": "OUTROS TRIBUTOS FEDERAIS",
       "grupocodigo": "302"
     },
     {
       "codigo": "302011",
-      "nome": "Irrf S/ Servico De Terceiro",
+      "nome": "IRRF S/ SERVICO DE TERCEIRO",
       "grupocodigo": "302"
     },
     {
       "codigo": "302012",
-      "nome": "Multa S/ Infracoes Fiscais",
+      "nome": "MULTA S/ INFRACOES FISCAIS",
       "grupocodigo": "302"
     },
     {
       "codigo": "302013",
-      "nome": "Multa Atraso Pagto Tributos",
+      "nome": "MULTA ATRASO PAGTO TRIBUTOS",
       "grupocodigo": "302"
     },
     {
       "codigo": "400001",
-      "nome": "Alimentação E Diarias Em Entregas",
+      "nome": "ALIMENTAÇÃO E DIARIAS EM ENTREGAS",
       "grupocodigo": "400"
     },
     {
       "codigo": "400002",
-      "nome": "Gratificaçoes De Pedagio G",
+      "nome": "GRATIFICAÇOES DE PEDAGIO G",
       "grupocodigo": "400"
     },
     {
       "codigo": "400003",
-      "nome": "Locação De Veiculos Para Entregas",
-      "grupocodigo": "400"
-    },
-    {
-      "codigo": "401003",
-      "nome": "Lanches, Refeicões E Diarias",
+      "nome": "LOCAÇÃO DE VEICULOS PARA ENTREGAS",
       "grupocodigo": "400"
     },
     {
       "codigo": "401001",
-      "nome": "Manutencao Equipamentos Oficina",
+      "nome": "MANUTENCAO EQUIPAMENTOS OFICINA",
       "grupocodigo": "401"
+    },
+    {
+      "codigo": "401002",
+      "nome": "CIPA E MATERIAL DE SEGURANCA",
+      "grupocodigo": "300"
+    },
+    {
+      "codigo": "401003",
+      "nome": "LANCHES, REFEICÕES E DIARIAS",
+      "grupocodigo": "400"
     },
     {
       "codigo": "401004",
-      "nome": "Recapagem De Pneu",
+      "nome": "RECAPAGEM DE PNEU",
       "grupocodigo": "401"
     },
     {
+      "codigo": "401005",
+      "nome": "RESCISOES CONTRATUAIS - MOTORISTAS",
+      "grupocodigo": "300"
+    },
+    {
       "codigo": "401006",
-      "nome": "Viagens E Estadias - Motoristas",
+      "nome": "VIAGENS E ESTADIAS - MOTORISTAS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401007",
-      "nome": "Balsas E Pedagios",
+      "nome": "BALSAS E PEDAGIOS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401008",
-      "nome": "Alinhamento E Balanceamento",
+      "nome": "ALINHAMENTO E BALANCEAMENTO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401009",
-      "nome": "Avarias - Transporte",
+      "nome": "AVARIAS - TRANSPORTE",
       "grupocodigo": "401"
     },
     {
       "codigo": "401010",
-      "nome": "Restituicao A Motorista",
+      "nome": "RESTITUICAO A MOTORISTA",
       "grupocodigo": "401"
     },
     {
+      "codigo": "401011",
+      "nome": "SALARIOS - TRANSPORTE",
+      "grupocodigo": "300"
+    },
+    {
       "codigo": "401012",
-      "nome": "Premiacao - Motoristas",
+      "nome": "PREMIACAO - MOTORISTAS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401013",
-      "nome": "Comissao Motoristas",
+      "nome": "COMISSAO MOTORISTAS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401014",
-      "nome": "Manutencao/ Acessorios - Veiculos",
+      "nome": "MANUTENCAO/ ACESSORIOS - VEICULOS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401015",
-      "nome": "Oleo  Diesel",
+      "nome": "OLEO  DIESEL",
       "grupocodigo": "401"
     },
     {
       "codigo": "401016",
-      "nome": "Oleo Lubrificante",
+      "nome": "OLEO LUBRIFICANTE",
       "grupocodigo": "401"
     },
     {
       "codigo": "401017",
-      "nome": "Filtro",
+      "nome": "FILTRO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401018",
-      "nome": "Pneu",
+      "nome": "PNEU",
       "grupocodigo": "401"
     },
     {
       "codigo": "401019",
-      "nome": "Dados Para Rasteamento De Veiculos",
+      "nome": "DADOS PARA RASTEAMENTO DE VEICULOS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401020",
-      "nome": "Conservacao E Limpeza - Transporte",
+      "nome": "CONSERVACAO E LIMPEZA - TRANSPORTE",
       "grupocodigo": "401"
     },
     {
       "codigo": "401021",
-      "nome": "Gasolina",
+      "nome": "GASOLINA",
       "grupocodigo": "401"
     },
     {
       "codigo": "401022",
-      "nome": "Multa / Transito",
+      "nome": "MULTA / TRANSITO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401023",
-      "nome": "Ipva / Licenciamento",
+      "nome": "IPVA / LICENCIAMENTO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401024",
-      "nome": "Acidente De Transito",
+      "nome": "ACIDENTE DE TRANSITO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401025",
-      "nome": "Ferias - Motoristas",
+      "nome": "FERIAS - MOTORISTAS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401026",
-      "nome": "13o. Salario - Motoristas",
+      "nome": "13o. SALARIO - MOTORISTAS",
       "grupocodigo": "401"
     },
     {
       "codigo": "401027",
-      "nome": "Seguros - Transporte",
+      "nome": "SEGUROS - TRANSPORTE",
       "grupocodigo": "401"
     },
     {
       "codigo": "401028",
-      "nome": "Comissao De Capatazia",
+      "nome": "COMISSAO DE CAPATAZIA",
       "grupocodigo": "401"
     },
     {
       "codigo": "401029",
-      "nome": "Estacionamento",
+      "nome": "ESTACIONAMENTO",
       "grupocodigo": "401"
     },
     {
       "codigo": "401030",
-      "nome": "Peças De Reposição",
+      "nome": "PEÇAS DE REPOSIÇÃO",
       "grupocodigo": "401"
     },
     {
       "codigo": "402001",
-      "nome": "Seguros - Cd",
+      "nome": "SEGUROS - CD",
       "grupocodigo": "402"
     },
     {
+      "codigo": "402002",
+      "nome": "CIPA E MATERIAL DE SEGURANCA - CD",
+      "grupocodigo": "300"
+    },
+    {
       "codigo": "402003",
-      "nome": "Treinamento/ Eventos - Cd",
+      "nome": "TREINAMENTO/ EVENTOS - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402004",
-      "nome": "Embalagens/ Paletes - Cd",
+      "nome": "EMBALAGENS/ PALETES - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402005",
-      "nome": "Lanches E Refeicoes - Cd",
+      "nome": "LANCHES E REFEICOES - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402006",
-      "nome": "Rescisoes Contratuais - Cd",
+      "nome": "RESCISOES CONTRATUAIS - CD",
       "grupocodigo": "402"
     },
     {
+      "codigo": "402007",
+      "nome": "DESPESAS COM RECICLAGEM",
+      "grupocodigo": "301"
+    },
+    {
       "codigo": "402008",
-      "nome": "Pag . Descarga De Mercadorias Em Cliente",
+      "nome": "PAG . DESCARGA DE MERCADORIAS EM CLIENTE",
       "grupocodigo": "402"
     },
     {
       "codigo": "402009",
-      "nome": "** Manuntecao De Custo **",
+      "nome": "** MANUNTECAO DE CUSTO **",
       "grupocodigo": "402"
     },
     {
       "codigo": "402010",
-      "nome": "Premiacao - Cd",
+      "nome": "PREMIACAO - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402011",
-      "nome": "Manutencao / Equipamentos - Cd",
+      "nome": "MANUTENCAO / EQUIPAMENTOS - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402012",
-      "nome": "Manutencao Predial - Cd",
+      "nome": "MANUTENCAO PREDIAL - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402013",
-      "nome": "Material Espediente - Cd Consumo",
+      "nome": "MATERIAL ESPEDIENTE - CD CONSUMO",
       "grupocodigo": "402"
     },
     {
       "codigo": "402014",
-      "nome": "Acidente - Cd",
+      "nome": "ACIDENTE - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402015",
-      "nome": "Aquisicao/ Equipamentos  Cd",
+      "nome": "AQUISICAO/ EQUIPAMENTOS  CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402016",
-      "nome": "Ferias - Cd",
+      "nome": "FERIAS - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402017",
-      "nome": "13o. - Cd",
+      "nome": "13o. - CD",
       "grupocodigo": "402"
     },
     {
       "codigo": "402019",
-      "nome": "Faltas De Estoque",
+      "nome": "FALTAS DE ESTOQUE",
       "grupocodigo": "402"
     },
     {
       "codigo": "402020",
-      "nome": "Maquinas E Equipamentos",
+      "nome": "MAQUINAS E EQUIPAMENTOS",
       "grupocodigo": "402"
     },
     {
+      "codigo": "402021",
+      "nome": "* ENCARTE/PONTO EXTRA",
+      "grupocodigo": "200"
+    },
+    {
+      "codigo": "402022",
+      "nome": "* ANIVERSARIO/INAUGURAÇÃO DE LOJAS",
+      "grupocodigo": "250"
+    },
+    {
       "codigo": "402023",
-      "nome": "Despesas Com Trat. De Residuos",
+      "nome": "DESPESAS COM TRAT. DE RESIDUOS",
       "grupocodigo": "402"
     },
     {
       "codigo": "402024",
-      "nome": "Recebimento De Descarrego",
+      "nome": "RECEBIMENTO DE DESCARREGO",
       "grupocodigo": "402"
     },
     {
       "codigo": "402999",
-      "nome": "Acerto De Estoque ***",
-      "grupocodigo": "402"
-    },
-    {
-      "codigo": "700003",
-      "nome": "Venda De Mercadorias Avariadas",
+      "nome": "ACERTO DE ESTOQUE ***",
       "grupocodigo": "402"
     },
     {
       "codigo": "403001",
-      "nome": "Salario De Equipe De Admistração",
+      "nome": "SALARIO DE EQUIPE DE ADMISTRAÇÃO",
       "grupocodigo": "403"
     },
     {
       "codigo": "403002",
-      "nome": "Aluguel De Predio",
+      "nome": "ALUGUEL DE PREDIO",
       "grupocodigo": "403"
     },
     {
       "codigo": "403003",
-      "nome": "Iptu Predio",
+      "nome": "IPTU PREDIO",
       "grupocodigo": "403"
     },
     {
       "codigo": "403004",
-      "nome": "Energia Predio",
+      "nome": "ENERGIA PREDIO",
       "grupocodigo": "403"
     },
     {
       "codigo": "403005",
-      "nome": "Despesas Com Veiculos",
+      "nome": "DESPESAS COM VEICULOS",
       "grupocodigo": "403"
     },
     {
       "codigo": "403006",
-      "nome": "Despesas Com Alimentação",
+      "nome": "DESPESAS COM ALIMENTAÇÃO",
       "grupocodigo": "403"
     },
     {
       "codigo": "403007",
-      "nome": "Salario De  Promotores",
+      "nome": "SALARIO DE  PROMOTORES",
       "grupocodigo": "403"
     },
     {
       "codigo": "403008",
-      "nome": "Telefonia E Internet",
+      "nome": "TELEFONIA E INTERNET",
       "grupocodigo": "403"
     },
     {
       "codigo": "403009",
-      "nome": "Despesas De Viagens",
+      "nome": "DESPESAS DE VIAGENS",
       "grupocodigo": "403"
     },
     {
       "codigo": "403010",
-      "nome": "Outras Despesas Cd Juazeiro",
+      "nome": "OUTRAS DESPESAS CD JUAZEIRO",
       "grupocodigo": "403"
     },
     {
+      "codigo": "404001",
+      "nome": "SALARIO DE EQUIPE DA UNIDADE",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404002",
+      "nome": "ALUGUEL DO PREDIO",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404003",
+      "nome": "IPTU PREDIO DE SOBRAL",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404004",
+      "nome": "ENERGIA DO PREDIO",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404005",
+      "nome": "DESPESAS COM VEICULOS",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404006",
+      "nome": "DESPESAS COM ALIMENTAÇÃO",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404007",
+      "nome": "DESPESAS COM INTERNET",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404008",
+      "nome": "DESPESAS COM VIAHENS",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404009",
+      "nome": "OUTRAS DESPESAS COM CD DE SOBRAL",
+      "grupocodigo": "404"
+    },
+    {
+      "codigo": "404010",
+      "nome": "BONUS DE DESCARGA DE NERCADORIAS",
+      "grupocodigo": "404"
+    },
+    {
       "codigo": "500001",
-      "nome": "Viagens E Estadias - Cpd",
+      "nome": "VIAGENS E ESTADIAS - CPD",
       "grupocodigo": "500"
     },
     {
       "codigo": "500002",
-      "nome": "Consultoria/ Treinamento - Cpd",
+      "nome": "CONSULTORIA/ TREINAMENTO - CPD",
       "grupocodigo": "500"
     },
     {
       "codigo": "500003",
-      "nome": "Internet",
+      "nome": "INTERNET",
       "grupocodigo": "500"
     },
     {
       "codigo": "500004",
-      "nome": "Manutencao Sistemas",
+      "nome": "MANUTENCAO SISTEMAS",
       "grupocodigo": "500"
     },
     {
       "codigo": "500005",
-      "nome": "Manutencao De Equipamentos - Cpd",
+      "nome": "MANUTENCAO DE EQUIPAMENTOS - CPD",
       "grupocodigo": "500"
     },
     {
       "codigo": "500006",
-      "nome": "Trasmissao De Dados",
+      "nome": "TRASMISSAO DE DADOS",
       "grupocodigo": "500"
     },
     {
       "codigo": "500007",
-      "nome": "Aquisicao Equip. Informatica",
+      "nome": "AQUISICAO EQUIP. INFORMATICA",
       "grupocodigo": "500"
     },
     {
       "codigo": "500008",
-      "nome": "Aquisicao Software Informatica",
+      "nome": "AQUISICAO SOFTWARE INFORMATICA",
       "grupocodigo": "500"
     },
     {
       "codigo": "600001",
-      "nome": "Assistencia Medica",
+      "nome": "ASSISTENCIA MEDICA",
       "grupocodigo": "600"
     },
     {
       "codigo": "600002",
-      "nome": "Crachas E Uniformes",
+      "nome": "CRACHAS E UNIFORMES",
       "grupocodigo": "600"
     },
     {
       "codigo": "600003",
-      "nome": "Indenizacoes Trabalhistas",
+      "nome": "INDENIZACOES TRABALHISTAS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600004",
-      "nome": "Anuncios E Publicacoes - Rh",
+      "nome": "ANUNCIOS E PUBLICACOES - RH",
       "grupocodigo": "600"
     },
     {
       "codigo": "600005",
-      "nome": "Viagens E Estadias - Rh",
+      "nome": "VIAGENS E ESTADIAS - RH",
       "grupocodigo": "600"
     },
     {
       "codigo": "600006",
-      "nome": "Confraternizacao",
+      "nome": "CONFRATERNIZACAO",
       "grupocodigo": "600"
     },
     {
       "codigo": "600007",
-      "nome": "Deposito Judicial",
+      "nome": "DEPOSITO JUDICIAL",
       "grupocodigo": "600"
     },
     {
       "codigo": "600008",
-      "nome": "Custas Processuais",
+      "nome": "CUSTAS PROCESSUAIS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600009",
-      "nome": "Irrf S/ Salarios",
+      "nome": "IRRF S/ SALARIOS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600010",
-      "nome": "Recrutamento E Selecao Terceirizados",
+      "nome": "RECRUTAMENTO E SELECAO TERCEIRIZADOS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600011",
-      "nome": "Pensoes Alimenticias",
+      "nome": "PENSOES ALIMENTICIAS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600012",
-      "nome": "Taxa Sindical",
+      "nome": "TAXA SINDICAL",
       "grupocodigo": "600"
     },
     {
       "codigo": "600013",
-      "nome": "Inss",
+      "nome": "INSS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600014",
-      "nome": "Fgts",
+      "nome": "FGTS",
       "grupocodigo": "600"
     },
     {
       "codigo": "600015",
-      "nome": "Salarios Familia",
+      "nome": "SALARIOS FAMILIA",
       "grupocodigo": "600"
     },
     {
       "codigo": "700001",
-      "nome": "Despesas Da Metalugica",
+      "nome": "DESPESAS DA METALUGICA",
       "grupocodigo": "700"
     },
     {
       "codigo": "700002",
-      "nome": "Despesas Marcenaria",
+      "nome": "DESPESAS MARCENARIA",
       "grupocodigo": "700"
     },
     {
-      "codigo": "37",
-      "nome": "*** Temporaria ***",
-      "grupocodigo": "900"
+      "codigo": "700003",
+      "nome": "VENDA DE MERCADORIAS AVARIADAS",
+      "grupocodigo": "402"
+    },
+    {
+      "codigo": "700004",
+      "nome": "RECEITAS COM RECICLAGEM",
+      "grupocodigo": "301"
+    },
+    {
+      "codigo": "800001",
+      "nome": "FILIAL X MATRIZ - CONTAS",
+      "grupocodigo": "800"
+    },
+    {
+      "codigo": "800002",
+      "nome": "FILAIL X JUAZEIRO CONTAS",
+      "grupocodigo": "800"
     },
     {
       "codigo": "900001",
-      "nome": "Perdas E Danos",
+      "nome": "PERDAS E DANOS",
       "grupocodigo": "900"
     },
     {
       "codigo": "900002",
-      "nome": "Pro Labore",
+      "nome": "PRO LABORE",
       "grupocodigo": "900"
     },
     {
       "codigo": "900003",
-      "nome": "Viagens E Estadias - Diretoria",
+      "nome": "VIAGENS E ESTADIAS - DIRETORIA",
       "grupocodigo": "900"
     },
     {
       "codigo": "900004",
-      "nome": "Combustiveis E Lubrificantes - Diretoria",
+      "nome": "COMBUSTIVEIS E LUBRIFICANTES - DIRETORIA",
       "grupocodigo": "900"
     },
     {
       "codigo": "900005",
-      "nome": "Distribuicao De Lucros",
+      "nome": "DISTRIBUICAO DE LUCROS",
       "grupocodigo": "900"
     },
     {
       "codigo": "993001",
-      "nome": "Imoveis",
+      "nome": "IMOVEIS",
       "grupocodigo": "993"
     },
     {
       "codigo": "993002",
-      "nome": "Leasing",
+      "nome": "LEASING",
       "grupocodigo": "993"
     },
     {
       "codigo": "993003",
-      "nome": "Terrenos",
+      "nome": "TERRENOS",
       "grupocodigo": "993"
     },
     {
       "codigo": "993004",
-      "nome": "Aquisicao De Veiculos Pesados - Invest",
+      "nome": "AQUISICAO DE VEICULOS PESADOS - INVEST",
       "grupocodigo": "993"
     },
     {
       "codigo": "993005",
-      "nome": "Aquisicao De Outros Veiculos - Invest",
+      "nome": "AQUISICAO DE OUTROS VEICULOS - INVEST",
       "grupocodigo": "993"
     },
     {
-      "codigo": "994",
-      "nome": "Total Investimentos",
-      "grupocodigo": "994"
+      "codigo": "997001",
+      "nome": "VEICULOS",
+      "grupocodigo": "997"
+    },
+    {
+      "codigo": "998001",
+      "nome": "GANHOS ALIENAÇÃO DE IMODILIZADOS",
+      "grupocodigo": "998"
+    },
+    {
+      "codigo": "998002",
+      "nome": "ALUGUEL DE IMOVEIS",
+      "grupocodigo": "998"
     }
   ]
 }

@@ -48,8 +48,9 @@ npm run db:migrate
 - auditoria com estado anterior, estado novo e de/para de cada campo editado;
 - exportação para `.xlsx` e PDF por administrador, gerência administrativa e diretoria;
 - gestão administrativa de usuários, perfis, sedes e centros de custo;
-- 15 grupos e 193 contas fixos, importados de `filial.dgrupoconta` e `filial.dcontacontabil`;
-- busca por código ou nome nos seletores de grupo e conta, com contas filtradas pelo grupo escolhido.
+- catálogos de grupos e contas sincronizados diretamente de `PCGRUPO` e `PCCONTA` do WinThor: a Ômega Matriz usa o catálogo da matriz e as demais sedes usam o catálogo da filial;
+- grupos e contas podem ser ativados ou inativados pelo administrador, sem apagar lançamentos históricos;
+- busca por código ou nome nos seletores de grupo e conta, com contas filtradas pelo grupo escolhido;
 - 11 sedes fixas da empresa, incluindo `Realleza` com a grafia correta;
 - orçamento editável por conta, sede e competência, iniciado em R$ 0,00;
 - cada orçamento permanece vigente nos meses seguintes até que um novo valor seja informado;
@@ -120,6 +121,7 @@ ECOSYSTEM_SSO_ENABLED=true
 ECOSYSTEM_SSO_ISSUER=ecosistema-omega
 ECOSYSTEM_SSO_AUDIENCE=lancamentos
 ECOSYSTEM_SSO_SHARED_SECRET=O-MESMO-SEGREDO-CONFIGURADO-NO-ECOSSISTEMA
+CATALOG_SYNC_TOKEN=OUTRO-SEGREDO-ALEATORIO-COM-32-OU-MAIS-CARACTERES
 ```
 
 No frontend configure:
@@ -130,7 +132,21 @@ VITE_API_BASE_URL=https://${{Backend.RAILWAY_PUBLIC_DOMAIN}}
 
 `PORT` é fornecida automaticamente pelo Railway e não precisa ser criada manualmente. Como variáveis `VITE_*` entram no bundle durante o build, faça um novo deploy do frontend após alterá-las.
 
-Use dois segredos diferentes e aleatórios: um para `AUTH_TOKEN_SECRET` e outro para o par `ECOSYSTEM_SSO_SHARED_SECRET`/`SSO_SECRET_LANCAMENTOS`. Nunca reutilize `SESSION_SECRET` do Ecossistema. Depois de validar o SSO, sele os segredos no painel do Railway.
+Use três segredos diferentes e aleatórios: um para `AUTH_TOKEN_SECRET`, outro para o par `ECOSYSTEM_SSO_SHARED_SECRET`/`SSO_SECRET_LANCAMENTOS` e um terceiro para `CATALOG_SYNC_TOKEN`. Nunca reutilize `SESSION_SECRET` do Ecossistema. Depois de validar o SSO, sele os segredos no painel do Railway.
+
+## Sincronização dos catálogos WinThor
+
+A DAG `lancamentos_catalogos_sync` fica em `airflow/lancamentos_catalogos_sync_dag.py` e executa no minuto 17 de cada hora. Ela consulta somente `PCGRUPO` e `PCCONTA`, sem alterar os bancos Oracle, e envia os dois catálogos para a API idempotente do sistema.
+
+Crie estas conexões no Airflow:
+
+- `lancamentos_oracle_filial`: host, porta, usuário, senha e service name do Oracle da filial;
+- `lancamentos_oracle_matriz`: host, porta, usuário, senha e service name do Oracle da matriz;
+- `lancamentos_catalog_sync`: host com a URL pública do backend e senha com o mesmo valor de `CATALOG_SYNC_TOKEN`.
+
+O catálogo `MATRIZ` vale somente para a sede Ômega Matriz. O catálogo `FILIAL` vale para todas as demais sedes. O sincronizador grava apenas diferenças reais. Quando uma conta desaparece do Oracle, ela é apagada se nunca tiver sido usada; se existir lançamento relacionado, permanece no histórico com a origem marcada como ausente e fica bloqueada para novos lançamentos e orçamentos. A mesma regra é aplicada aos grupos.
+
+Os grupos da filial `100, 101, 102, 103, 104, 202, 250, 404, 800, 990, 991, 992, 954, 995, 996, 997, 998 e 999` entram inativos por padrão, inclusive se reaparecerem no Oracle. O administrador pode reativá-los na aba Configurações. Alterações manuais de ativação ficam registradas na auditoria.
 
 ## Verificações
 

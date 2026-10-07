@@ -63,7 +63,8 @@ function unauthorized(reply: FastifyReply): void {
 
 export async function authHook(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   if (!request.url.startsWith('/api/') || request.method === 'OPTIONS') return;
-  if (request.url === '/api/health' || request.url === '/api/auth/login' || request.url === '/api/auth/sso/exchange') return;
+  if (request.url === '/api/health' || request.url === '/api/auth/login' || request.url === '/api/auth/sso/exchange'
+    || request.url === '/api/integracoes/catalogos/sincronizar') return;
   const raw = request.headers.authorization;
   if (!raw?.startsWith('Bearer ')) return unauthorized(reply);
   try {

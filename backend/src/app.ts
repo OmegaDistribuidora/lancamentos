@@ -9,13 +9,15 @@ import { registerDashboardRoutes } from './routes/dashboard.js';
 import { registerAuditRoutes } from './routes/auditoria.js';
 import { registerUserRoutes } from './routes/usuarios.js';
 import { registerCostCenterRoutes } from './routes/centros-custo.js';
+import { registerCatalogSyncRoutes } from './routes/catalogos-sync.js';
+import { registerCatalogConfigurationRoutes } from './routes/configuracoes-catalogos.js';
 
 export async function createApp() {
   const app = Fastify({ logger: true, trustProxy: true });
   await app.register(cors, {
     origin(origin, callback) { callback(null, !origin || config.corsOrigins.includes(origin.replace(/\/$/, ''))); },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Catalog-Sync-Token'],
   });
   app.addHook('onRequest', authHook);
   app.get('/api/health', async () => ({ status: 'ok', timezone: config.timezone }));
@@ -26,6 +28,8 @@ export async function createApp() {
   await registerAuditRoutes(app);
   await registerUserRoutes(app);
   await registerCostCenterRoutes(app);
+  await registerCatalogSyncRoutes(app);
+  await registerCatalogConfigurationRoutes(app);
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof HttpError) return reply.status(error.status).send({ status: error.status, message: error.message, fields: error.fields });
     if ((error as { code?: string }).code === '23505') return reply.status(409).send({ status: 409, message: 'Já existe um cadastro com estes dados.' });

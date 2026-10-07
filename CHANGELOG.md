@@ -1,11 +1,15 @@
 # Changelog
 
-## Não lançado
+## 1.3.0 — 2026-10-07
 
 - catálogo de grupos e contas da matriz importado diretamente de `PCGRUPO` e `PCCONTA`;
 - catálogo contábil separado por sede: Ômega Matriz usa a matriz e as demais sedes preservam a filial;
 - orçamentos da Ômega Matriz limitados exclusivamente às contas da matriz;
-- lançamentos históricos preservados e liberados para realocação auditada ao catálogo correto.
+- lançamentos históricos preservados e liberados para realocação auditada ao catálogo correto;
+- sincronização horária e idempotente de `PCGRUPO` e `PCCONTA` da matriz e da filial por Airflow;
+- remoção segura de contas e grupos ausentes na origem, preservando e bloqueando itens com histórico;
+- configuração administrativa para ativar ou inativar grupos e contas individualmente;
+- auditoria das ativações e inativações manuais do catálogo contábil.
 
 ## 1.2.0 — 2026-09-29
 
