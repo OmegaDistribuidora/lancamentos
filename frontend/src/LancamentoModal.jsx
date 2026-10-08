@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Save } from 'lucide-react'
 import { api } from './api.js'
 import { todayFortaleza } from './format.js'
@@ -16,8 +16,8 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
       contaId: item?.contaId || '', observacao: item?.observacao || '',
     }
   })
-  const [valueText, setValueText] = useState(moneyInputFromValue(item?.valor))
-  const [valueFocused, setValueFocused] = useState(false)
+  const [valueDigits, setValueDigits] = useState(moneyInputFromValue(item?.valor))
+  const replaceValueOnType = useRef(Boolean(item))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const selectedSite = useMemo(() => catalogs.sedes.find((sede) => String(sede.id) === String(form.sedeId)), [catalogs.sedes, form.sedeId])
@@ -32,9 +32,26 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
     return { ...current, [key]: value, ...(key === 'grupoContaId' ? { contaId: '' } : {}) }
   })
 
+  function valueKeyDown(event) {
+    if (/^\d$/.test(event.key)) {
+      event.preventDefault()
+      setValueDigits((current) => sanitizeMoneyInput(replaceValueOnType.current ? event.key : `${current}${event.key}`))
+      replaceValueOnType.current = false
+    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault(); replaceValueOnType.current = false
+      setValueDigits((current) => event.key === 'Delete' ? '' : current.slice(0, -1))
+    }
+  }
+
+  function pasteValue(event) {
+    event.preventDefault()
+    setValueDigits(sanitizeMoneyInput(event.clipboardData.getData('text')))
+    replaceValueOnType.current = false
+  }
+
   async function submit(event) {
     event.preventDefault(); setLoading(true); setError('')
-    const valor = moneyInputToNumber(valueText)
+    const valor = moneyInputToNumber(valueDigits)
     if (valor <= 0) { setError('Informe um valor maior que zero.'); setLoading(false); return }
     if (form.dataPagamento > today) { setError('A data de pagamento não pode ser futura.'); setLoading(false); return }
     try {
@@ -53,7 +70,7 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
         <label>Centro de custo<select required value={form.centroCustoId} onChange={(event) => change('centroCustoId', event.target.value)} disabled={!form.sedeId}><option value="">Selecione</option>{costCenters.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
         <label>Grupo de contas<SearchableSelect options={groups} value={form.grupoContaId} onChange={(value) => change('grupoContaId', value)} disabled={!form.sedeId} placeholder="Digite o código ou nome do grupo"/></label>
         <label>Conta<SearchableSelect options={accounts} value={form.contaId} onChange={(value) => change('contaId', value)} disabled={!form.grupoContaId} placeholder={form.grupoContaId ? 'Digite o código ou nome da conta' : 'Escolha o grupo primeiro'}/></label>
-        <label>Valor (R$)<input required className="currency-entry" type="text" inputMode="decimal" value={valueFocused ? valueText : formatMoneyInput(valueText)} onFocus={(event) => { setValueFocused(true); requestAnimationFrame(() => event.target.select()) }} onBlur={() => setValueFocused(false)} onChange={(event) => setValueText(sanitizeMoneyInput(event.target.value))} placeholder="0,00" autoComplete="off"/></label>
+        <label>Valor (R$)<input required className="currency-entry" type="text" inputMode="numeric" value={formatMoneyInput(valueDigits)} onFocus={() => { replaceValueOnType.current = Boolean(valueDigits) }} onKeyDown={valueKeyDown} onPaste={pasteValue} onChange={() => undefined} placeholder="0,00" autoComplete="off"/></label>
         <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes que ajudem a identificar o lançamento."/></label>
         {error && <div className="form-error full">{error}</div>}
       </div>

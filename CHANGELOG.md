@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 — 2026-10-08
+
+- campo de valor alterado para máscara monetária progressiva por centavos: `6` vira `0,06`, `65` vira `0,65` e `659` vira `6,59`.
+
 ## 1.3.1 — 2026-10-08
 
 - correção da entrada de valores em lançamentos para que dígitos adicionais permaneçam na parte inteira;
