@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 — 2026-10-08
+
+- correção da entrada de valores em lançamentos para que dígitos adicionais permaneçam na parte inteira;
+- centavos passam a ser informados explicitamente após vírgula ou ponto, mantendo frontend e backend consistentes.
+
 ## 1.3.0 — 2026-10-07
 
 - catálogo de grupos e contas da matriz importado diretamente de `PCGRUPO` e `PCCONTA`;
