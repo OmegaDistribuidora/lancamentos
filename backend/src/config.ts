@@ -38,7 +38,7 @@ export const config = {
   omegaApi: {
     url: (process.env.OMEGA_API_URL || 'http://127.0.0.1:8787').trim().replace(/\/$/, ''),
     key: (process.env.OMEGA_API_KEY || '').trim(),
-    timeoutMs: Number(process.env.OMEGA_API_TIMEOUT_MS || 20_000),
+    timeoutMs: Number(process.env.OMEGA_API_TIMEOUT_MS || 45_000),
   },
 };
 
