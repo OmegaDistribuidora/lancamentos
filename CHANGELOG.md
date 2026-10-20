@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.1 — 2026-10-20
+
+- acesso a despesas de carga transformado em permissão individual administrável por usuário;
+- gerente administrativo permanece sem acesso por padrão até liberação explícita;
+- detalhamento da carga por pedido, com dados do cliente e seus itens;
+- visão consolidada de todos os itens da carga com quantidade, preço, volume, peso, caixas e fornecedor;
+- indicação visual da origem dos valores de distância, volume e caixas.
+
 ## 1.4.0 — 2026-10-20
 
 - novo perfil `LOGISTICA`, mantendo acesso somente aos próprios lançamentos;

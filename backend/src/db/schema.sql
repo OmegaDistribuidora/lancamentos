@@ -51,6 +51,7 @@ create table if not exists usuarios (
   senha_hash text,
   perfil varchar(40) not null default 'USUARIO'
     check (perfil in ('ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'LOGISTICA', 'USUARIO')),
+  acesso_despesa_carga boolean not null default false,
   ativo boolean not null default true,
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now()

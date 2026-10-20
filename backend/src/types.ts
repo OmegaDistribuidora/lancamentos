@@ -5,6 +5,7 @@ export type AuthUser = {
   login: string;
   nomeExibicao: string;
   perfil: Perfil;
+  acessoDespesaCarga: boolean;
 };
 
 declare module 'fastify' {

@@ -300,6 +300,11 @@ export async function migrate(): Promise<void> {
       `);
       await client.query(`insert into migracoes (versao) values ('011_perfil_logistica')`);
     }
+    const cargoPermissionMigration = await client.query(`select 1 from migracoes where versao='012_permissao_despesa_carga'`);
+    if (!cargoPermissionMigration.rowCount) {
+      await client.query(`alter table usuarios add column if not exists acesso_despesa_carga boolean not null default false`);
+      await client.query(`insert into migracoes (versao) values ('012_permissao_despesa_carga')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1
