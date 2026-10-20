@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ArrowLeft, Box, CalendarDays, Eye, MapPin, PackageSearch, ReceiptText, Search, Truck, UserRound, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Box, CalendarDays, Eye, MapPin, PackageSearch, ReceiptText, Search, Truck, UserRound, X } from 'lucide-react'
 import { api } from './api.js'
+import CargoExpenseForm from './CargoExpenseForm.jsx'
 import { currency, number } from './format.js'
 import { FilterSelect, Modal } from './components.jsx'
 
@@ -37,7 +38,7 @@ function Choice({ onClose, onNormal, onCargo }) {
   </Modal>
 }
 
-function CargoLookup({ onClose, onBack }) {
+function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
   const [numeroCarga, setNumeroCarga] = useState('')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -48,6 +49,7 @@ function CargoLookup({ onClose, onBack }) {
   const [detailsError, setDetailsError] = useState('')
   const [detailMode, setDetailMode] = useState('pedido')
   const [selectedPedido, setSelectedPedido] = useState('')
+  const [expenseOpen, setExpenseOpen] = useState(false)
 
   async function search(event) {
     event.preventDefault()
@@ -69,6 +71,10 @@ function CargoLookup({ onClose, onBack }) {
 
   const selectedOrder = details?.pedidos.find((item) => String(item.numeroPedido) === String(selectedPedido))
   const visibleItems = !details ? [] : detailMode === 'todos' ? details.itens : details.itens.filter((item) => String(item.numeroPedido) === String(selectedPedido))
+
+  if (expenseOpen) return <Modal title={`Despesa da carga #${data.numeroCarga}`} subtitle="Complete os custos da viagem. O grupo e a conta são definidos automaticamente." onClose={onClose} wide>
+    <CargoExpenseForm cargo={data} catalogs={catalogs} onBack={() => setExpenseOpen(false)} onSaved={onSaved}/>
+  </Modal>
 
   return <Modal title="Despesa de carga" subtitle="Consulte os dados logísticos registrados no WinThor. Nenhum lançamento será salvo nesta etapa." onClose={onClose} wide>
     <div className="cargo-modal-body">
@@ -121,17 +127,17 @@ function CargoLookup({ onClose, onBack }) {
               <div><span>Entrega</span><strong>{[selectedOrder.cliente.enderecoEntrega, selectedOrder.cliente.municipio, selectedOrder.cliente.uf].filter(Boolean).join(' · ') || '—'}</strong><small>{selectedOrder.cliente.telefone || 'Telefone não informado'}</small></div>
               <div><span>Pedido / nota</span><strong>{currency(selectedOrder.totais.valor)}</strong><small>NF {selectedOrder.numeroNota || '—'} · {number(selectedOrder.totais.itens)} itens</small></div>
             </div>}
-            <div className="cargo-items-table"><table><thead><tr>{detailMode === 'todos' && <th>Pedido</th>}<th>Produto</th><th>Fornecedor</th><th className="align-right">Qtd. / caixas</th><th className="align-right">Venda</th><th className="align-right">Custo</th><th className="align-right">Lucro</th><th className="align-right">Volume / peso</th></tr></thead><tbody>{visibleItems.map((item) => <tr key={`${item.numeroPedido}-${item.sequencia}`}>{detailMode === 'todos' && <td><strong>#{item.numeroPedido}</strong></td>}<td><strong>{item.codigoProduto}</strong><span className="cargo-product-name">{item.descricao}</span><small>{[item.embalagem, item.unidade].filter(Boolean).join(' · ')}</small></td><td>{item.fornecedor?.nome || '—'}<small>{item.fornecedor?.codigo ? `Código ${item.fornecedor.codigo}` : ''}</small></td><td className="align-right"><strong>{number(item.quantidade)} un.</strong><small>{decimal2(item.quantidadeCaixas)} caixas · {number(item.unidadesPorCaixa)} un./cx.</small></td><td className="align-right amount">{currency(item.valorTotal)}<small>{currency(item.precoVenda)} por un.</small></td><td className="align-right amount">{currency(item.custoTotal)}<small>{currency(item.custoUnitario)} por un.</small></td><td className="align-right amount profit">{currency(item.lucroTotal)}</td><td className="align-right">{number(item.volumeTotal)}<small>{number(item.pesoBrutoTotalKg)} kg</small></td></tr>)}</tbody></table>{!visibleItems.length && <div className="cargo-no-items">Nenhum item encontrado para esta seleção.</div>}</div>
+            <div className="cargo-items-table"><table><thead><tr>{detailMode === 'todos' && <th>Pedido</th>}<th>Produto</th><th>Fornecedor</th><th className="align-right">Qtd. / caixas</th><th className="align-right">Venda</th><th className="align-right">Custo</th><th className="align-right">Lucro</th><th className="align-right">Volume / peso</th></tr></thead><tbody>{visibleItems.map((item) => <tr key={`${item.numeroPedido}-${item.sequencia}`}>{detailMode === 'todos' && <td><strong>#{item.numeroPedido}</strong></td>}<td><strong>{item.codigoProduto}{item.bonificacao && <span className="bonus-badge">BNF</span>}</strong><span className="cargo-product-name">{item.descricao}</span><small>{[item.embalagem, item.unidade].filter(Boolean).join(' · ')}</small></td><td>{item.fornecedor?.nome || '—'}<small>{item.fornecedor?.codigo ? `Código ${item.fornecedor.codigo}` : ''}</small></td><td className="align-right"><strong>{number(item.quantidade)} un.</strong><small>{decimal2(item.quantidadeCaixas)} caixas · {number(item.unidadesPorCaixa)} un./cx.</small></td><td className="align-right amount">{currency(item.valorTotal)}<small>{currency(item.precoVenda)} por un.</small></td><td className="align-right amount">{currency(item.custoTotal)}<small>{currency(item.custoUnitario)} por un.</small></td><td className={`align-right amount ${item.lucroTotal < 0 ? 'negative' : 'profit'}`}>{currency(item.lucroTotal)}</td><td className="align-right">{number(item.volumeTotal)}<small>{number(item.pesoBrutoTotalKg)} kg</small></td></tr>)}</tbody></table>{!visibleItems.length && <div className="cargo-no-items">Nenhum item encontrado para esta seleção.</div>}</div>
           </>}
         </section></>}
       </div>}
     </div>
-    <footer className="modal-footer cargo-footer"><button type="button" className="secondary" onClick={onBack}><ArrowLeft size={16}/> Voltar</button><button type="button" className="secondary" onClick={onClose}>Fechar</button></footer>
+    <footer className="modal-footer cargo-footer"><button type="button" className="secondary" onClick={onBack}><ArrowLeft size={16}/> Voltar</button><button type="button" className="primary" disabled={!data} onClick={() => setExpenseOpen(true)}>Avançar <ArrowRight size={16}/></button></footer>
   </Modal>
 }
 
-export default function NovoLancamentoFlow({ mode, onClose, onMode, onNormal }) {
+export default function NovoLancamentoFlow({ mode, onClose, onMode, onNormal, catalogs, onSaved }) {
   return mode === 'carga'
-    ? <CargoLookup onClose={onClose} onBack={() => onMode('choice')}/>
+    ? <CargoLookup onClose={onClose} onBack={() => onMode('choice')} catalogs={catalogs} onSaved={onSaved}/>
     : <Choice onClose={onClose} onNormal={onNormal} onCargo={() => onMode('carga')}/>
 }

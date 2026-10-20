@@ -95,25 +95,25 @@ export async function registerCatalogSyncRoutes(app: FastifyInstance): Promise<v
 
       const contasExcluidas = await client.query(`
         delete from contas c
-        where c.catalogo=$1::varchar(20)
+        where c.catalogo=$1::varchar(20) and not c.uso_exclusivo_carga
           and not exists(select 1 from _sync_contas s where s.codigo=c.codigo)
           and not exists(select 1 from lancamentos l where l.conta_id=c.id)
       `, [catalogo]);
       const contasIndisponiveis = await client.query(`
         update contas c set presente_origem=false
-        where c.catalogo=$1::varchar(20) and c.presente_origem
+        where c.catalogo=$1::varchar(20) and c.presente_origem and not c.uso_exclusivo_carga
           and not exists(select 1 from _sync_contas s where s.codigo=c.codigo)
       `, [catalogo]);
       const gruposExcluidos = await client.query(`
         delete from grupos_contas g
-        where g.catalogo=$1::varchar(20)
+        where g.catalogo=$1::varchar(20) and not g.uso_exclusivo_carga
           and not exists(select 1 from _sync_grupos s where s.codigo=g.codigo)
           and not exists(select 1 from contas c where c.grupo_conta_id=g.id)
           and not exists(select 1 from lancamentos l where l.grupo_conta_id=g.id)
       `, [catalogo]);
       const gruposIndisponiveis = await client.query(`
         update grupos_contas g set presente_origem=false
-        where g.catalogo=$1::varchar(20) and g.presente_origem
+        where g.catalogo=$1::varchar(20) and g.presente_origem and not g.uso_exclusivo_carga
           and not exists(select 1 from _sync_grupos s where s.codigo=g.codigo)
       `, [catalogo]);
 

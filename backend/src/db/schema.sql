@@ -26,6 +26,7 @@ create table if not exists grupos_contas (
   cor varchar(20) not null default '#2563eb',
   ativo boolean not null default true,
   presente_origem boolean not null default true,
+  uso_exclusivo_carga boolean not null default false,
   criado_em timestamptz not null default now(),
   unique (catalogo, codigo)
 );
@@ -40,6 +41,7 @@ create table if not exists contas (
   orcamento numeric(14,2) not null default 0.00 check (orcamento >= 0),
   ativo boolean not null default true,
   presente_origem boolean not null default true,
+  uso_exclusivo_carga boolean not null default false,
   criado_em timestamptz not null default now(),
   unique (catalogo, codigo)
 );
@@ -107,6 +109,35 @@ create table if not exists lancamentos (
 create index if not exists idx_lancamentos_colaborador on lancamentos(colaborador_id, criado_em desc);
 create index if not exists idx_lancamentos_data_pagamento on lancamentos(data_pagamento desc) where excluido_em is null;
 create index if not exists idx_lancamentos_sede on lancamentos(sede_id) where excluido_em is null;
+
+create table if not exists despesas_cargas (
+  numero_lancamento bigint primary key references lancamentos(numero_lancamento),
+  numero_carga bigint not null,
+  km_por_litro numeric(12,3) not null check (km_por_litro > 0),
+  valor_combustivel numeric(14,2) not null check (valor_combustivel >= 0),
+  km_inicial numeric(14,2) not null check (km_inicial >= 0),
+  km_final numeric(14,2) not null check (km_final >= km_inicial),
+  total_percorrido numeric(14,2) not null check (total_percorrido >= 0),
+  despesa_combustivel numeric(14,2) not null check (despesa_combustivel >= 0),
+  salario_funcionarios numeric(14,2) not null default 0 check (salario_funcionarios >= 0),
+  diarias_motoristas numeric(14,2) not null default 0 check (diarias_motoristas >= 0),
+  diarias_ajudantes numeric(14,2) not null default 0 check (diarias_ajudantes >= 0),
+  descarrego numeric(14,2) not null default 0 check (descarrego >= 0),
+  avarias numeric(14,2) not null default 0 check (avarias >= 0),
+  alimentacao numeric(14,2) not null default 0 check (alimentacao >= 0),
+  ajudante_extra numeric(14,2) not null default 0 check (ajudante_extra >= 0),
+  manutencao_veiculo numeric(14,2) not null default 0 check (manutencao_veiculo >= 0),
+  outros numeric(14,2) not null default 0 check (outros >= 0),
+  total_despesas numeric(14,2) not null check (total_despesas > 0),
+  lucro_carga numeric(14,2) not null,
+  lucro_final numeric(14,2) not null,
+  resumo_carga jsonb not null,
+  detalhes_carga jsonb not null,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create index if not exists idx_despesas_cargas_numero on despesas_cargas(numero_carga);
 
 create table if not exists auditoria_lancamentos (
   id bigserial primary key,

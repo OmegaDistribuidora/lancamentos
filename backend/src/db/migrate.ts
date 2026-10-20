@@ -305,6 +305,55 @@ export async function migrate(): Promise<void> {
       await client.query(`alter table usuarios add column if not exists acesso_despesa_carga boolean not null default false`);
       await client.query(`insert into migracoes (versao) values ('012_permissao_despesa_carga')`);
     }
+    const cargoExpenseMigration = await client.query(`select 1 from migracoes where versao='013_despesas_cargas'`);
+    if (!cargoExpenseMigration.rowCount) {
+      await client.query(`alter table grupos_contas add column if not exists uso_exclusivo_carga boolean not null default false`);
+      await client.query(`alter table contas add column if not exists uso_exclusivo_carga boolean not null default false`);
+      await client.query(`
+        insert into grupos_contas (catalogo,codigo,nome,cor,ativo,presente_origem,uso_exclusivo_carga)
+        select catalogo,'SISTEMA_CARGA','Despesas de Carga','#7c3aed',true,true,true
+        from unnest(array['FILIAL','MATRIZ']::text[]) catalogo
+        on conflict (catalogo,codigo) where codigo is not null do update
+        set nome=excluded.nome,cor=excluded.cor,ativo=true,presente_origem=true,uso_exclusivo_carga=true
+      `);
+      await client.query(`
+        insert into contas (catalogo,codigo,grupo_conta_id,nome,orcamento,ativo,presente_origem,uso_exclusivo_carga)
+        select g.catalogo,'SISTEMA_CARGA',g.id,'Despesas de Carga',0,true,true,true
+        from grupos_contas g where g.codigo='SISTEMA_CARGA' and g.uso_exclusivo_carga
+        on conflict (catalogo,codigo) where codigo is not null do update
+        set grupo_conta_id=excluded.grupo_conta_id,nome=excluded.nome,ativo=true,presente_origem=true,uso_exclusivo_carga=true
+      `);
+      await client.query(`
+        create table if not exists despesas_cargas (
+          numero_lancamento bigint primary key references lancamentos(numero_lancamento),
+          numero_carga bigint not null,
+          km_por_litro numeric(12,3) not null check (km_por_litro > 0),
+          valor_combustivel numeric(14,2) not null check (valor_combustivel >= 0),
+          km_inicial numeric(14,2) not null check (km_inicial >= 0),
+          km_final numeric(14,2) not null check (km_final >= km_inicial),
+          total_percorrido numeric(14,2) not null check (total_percorrido >= 0),
+          despesa_combustivel numeric(14,2) not null check (despesa_combustivel >= 0),
+          salario_funcionarios numeric(14,2) not null default 0 check (salario_funcionarios >= 0),
+          diarias_motoristas numeric(14,2) not null default 0 check (diarias_motoristas >= 0),
+          diarias_ajudantes numeric(14,2) not null default 0 check (diarias_ajudantes >= 0),
+          descarrego numeric(14,2) not null default 0 check (descarrego >= 0),
+          avarias numeric(14,2) not null default 0 check (avarias >= 0),
+          alimentacao numeric(14,2) not null default 0 check (alimentacao >= 0),
+          ajudante_extra numeric(14,2) not null default 0 check (ajudante_extra >= 0),
+          manutencao_veiculo numeric(14,2) not null default 0 check (manutencao_veiculo >= 0),
+          outros numeric(14,2) not null default 0 check (outros >= 0),
+          total_despesas numeric(14,2) not null check (total_despesas > 0),
+          lucro_carga numeric(14,2) not null,
+          lucro_final numeric(14,2) not null,
+          resumo_carga jsonb not null,
+          detalhes_carga jsonb not null,
+          criado_em timestamptz not null default now(),
+          atualizado_em timestamptz not null default now()
+        )
+      `);
+      await client.query(`create index if not exists idx_despesas_cargas_numero on despesas_cargas(numero_carga)`);
+      await client.query(`insert into migracoes (versao) values ('013_despesas_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

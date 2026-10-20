@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0 — 2026-10-20
+
+- bonificações do WinThor identificadas por cobrança `BNF`, com venda zerada, custo preservado e lucro negativo por item;
+- marcador roxo `BNF` incluído no detalhamento de produtos;
+- fluxo completo para lançamento de despesas de carga com sede, centro de custo, quilometragem, combustível e despesas adicionais;
+- grupo e conta internos `Despesas de Carga`, indisponíveis para lançamentos normais, orçamento e configuração manual;
+- total percorrido, combustível, despesas e lucro final calculados novamente pelo backend antes de salvar;
+- retrato completo da carga e seus produtos armazenado no momento do lançamento;
+- consulta e edição posterior dos detalhes da despesa de carga, com alterações registradas na auditoria.
+
 ## 1.4.3 — 2026-10-20
 
 - venda da carga alinhada ao total dos produtos consultados diretamente no Oracle, sem somar outras despesas dos documentos;

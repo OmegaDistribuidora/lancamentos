@@ -327,6 +327,31 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-items-table td strong { color:#334159; }
 .cargo-items-table .profit { color:#078457; }
 .cargo-no-items { padding:24px; color:#7d899b; text-align:center; font-size:11px; }
+.bonus-badge { display:inline-flex; margin-left:7px; padding:2px 6px; vertical-align:middle; color:#7c3aed; background:#ede9fe; border:1px solid #ddd6fe; border-radius:999px; font-size:9px; font-weight:800; letter-spacing:.04em; }
+.amount.negative,.negative { color:#dc2626!important; }
+.cargo-expense-form { overflow:auto; }
+.cargo-expense-context { grid-template-columns:repeat(3,1fr); }
+.calculated-field { min-height:43px; padding:7px 11px; display:flex; flex-direction:column; justify-content:center; gap:2px; background:#f5f8fc; border:1px solid #dce5f0; border-radius:9px; }
+.calculated-field span { color:#7d8ba0; font-size:10px; }
+.calculated-field strong { color:#1b2b45; font-size:13px; }
+.form-section-title { padding-top:7px; color:#21324d; font-size:13px; font-weight:800; border-top:1px solid #e5ebf2; }
+.cargo-expense-totals { padding:13px 15px; display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#f5f9ff; border:1px solid #d8e6f6; border-radius:11px; }
+.cargo-expense-totals div { display:flex; flex-direction:column; gap:3px; }
+.cargo-expense-totals span { color:#718096; font-size:10px; text-transform:uppercase; }
+.cargo-expense-totals strong { font-size:19px; }
+.cargo-expense-totals .positive strong { color:#078a55; }
+.cargo-snapshot { padding:14px 18px 0; }
+.cargo-snapshot-summary { padding:12px; display:grid; grid-template-columns:auto repeat(6,1fr); gap:15px; align-items:center; background:#f6f9fd; border:1px solid #dfe8f2; border-radius:11px; }
+.cargo-snapshot-summary>svg { color:#1976e9; }
+.cargo-snapshot-summary div { min-width:0; display:flex; flex-direction:column; gap:2px; }
+.cargo-snapshot-summary span,.cargo-snapshot-facts span { color:#8290a5; font-size:9px; text-transform:uppercase; }
+.cargo-snapshot-summary strong { overflow:hidden; color:#263751; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.cargo-snapshot-details { margin-top:10px; border:1px solid #e1e8f1; border-radius:10px; }
+.cargo-snapshot-details summary { padding:11px 13px; display:flex; align-items:center; gap:8px; color:#176fe5; cursor:pointer; font-size:12px; font-weight:700; }
+.cargo-snapshot-facts { padding:11px 13px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; border-top:1px solid #e7edf4; }
+.cargo-snapshot-facts span { display:flex; flex-direction:column; gap:3px; }
+.cargo-snapshot-facts strong { color:#2a3850; font-size:11px; text-transform:none; }
+.snapshot-items { max-height:310px; margin:0 12px 12px; overflow:auto; border:1px solid #e3e9f1; border-radius:8px; }
 
 /* Audit, users, catalogs */
 .audit-filters { grid-template-columns:minmax(250px,1fr) 220px; justify-content:start; }
@@ -495,6 +520,8 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .cargo-summary>* { grid-column:1; }
   .cargo-financial-summary { width:100%; flex-wrap:wrap; }
   .cargo-detail-grid { grid-template-columns:1fr 1fr; }
+  .cargo-expense-context,.cargo-expense-totals,.cargo-snapshot-facts { grid-template-columns:1fr; }
+  .cargo-snapshot-summary { grid-template-columns:auto 1fr 1fr; }
   .cargo-details-browser>header { align-items:flex-start; flex-direction:column; }
   .cargo-detail-tabs { width:100%; }
   .cargo-detail-tabs button { flex:1; }

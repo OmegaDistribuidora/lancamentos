@@ -48,14 +48,14 @@ export async function registerCatalogConfigurationRoutes(app: FastifyInstance): 
           count(c.id) filter(where c.ativo and c.presente_origem)::int as "quantidadeContasAtivas",
           (select count(*)::int from lancamentos l where l.grupo_conta_id=g.id) as "quantidadeLancamentos"
         from grupos_contas g left join contas c on c.grupo_conta_id=g.id
-        where g.catalogo=$1
+        where g.catalogo=$1 and not g.uso_exclusivo_carga
         group by g.id order by g.codigo
       `, [fonte]),
       pool.query(`
         select c.id,c.codigo,c.nome,c.catalogo,c.grupo_conta_id as "grupoContaId",
           c.ativo,c.presente_origem as "presenteOrigem",
           (select count(*)::int from lancamentos l where l.conta_id=c.id) as "quantidadeLancamentos"
-        from contas c where c.catalogo=$1 order by c.codigo
+        from contas c where c.catalogo=$1 and not c.uso_exclusivo_carga order by c.codigo
       `, [fonte]),
     ]);
     return { catalogo: fonte, gruposContas: grupos.rows, contas: contas.rows };
@@ -74,7 +74,7 @@ export async function registerCatalogConfigurationRoutes(app: FastifyInstance): 
       await client.query('begin');
       const result = await client.query<{ id: number; catalogo: string; codigo: string; nome: string; ativo: boolean; presenteOrigem: boolean }>(`
         select id,catalogo,codigo,nome,ativo,presente_origem as "presenteOrigem"
-        from ${tabela} where id=$1 for update
+        from ${tabela} where id=$1 and not uso_exclusivo_carga for update
       `, [id]);
       const item = result.rows[0] ?? notFound(tipo === 'grupos' ? 'Grupo não encontrado.' : 'Conta não encontrada.');
       if (ativo && !item.presenteOrigem) badRequest('O cadastro não existe mais no WinThor e não pode ser ativado.');

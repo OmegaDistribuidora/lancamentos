@@ -13,6 +13,7 @@ const UsuariosPage = lazy(() => import('./UsuariosPage.jsx'))
 const CadastrosPage = lazy(() => import('./CadastrosPage.jsx'))
 const CentrosCustoPage = lazy(() => import('./CentrosCustoPage.jsx'))
 const NovoLancamentoFlow = lazy(() => import('./NovoLancamentoFlow.jsx'))
+const CargoExpenseModal = lazy(() => import('./CargoExpenseModal.jsx'))
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -21,6 +22,7 @@ export default function App() {
   const [view, setView] = useState('dashboard')
   const [modal, setModal] = useState(undefined)
   const [newFlow, setNewFlow] = useState(undefined)
+  const [cargoModal, setCargoModal] = useState(undefined)
   const [refreshKey, setRefreshKey] = useState(0)
   const [toast, setToast] = useState(null)
   const notify = useCallback((message, type = 'success') => setToast({ message, type, id: Date.now() }), [])
@@ -59,6 +61,8 @@ export default function App() {
     setModal(null)
   }
   function saved(_item, edited) { setModal(undefined); setRefreshKey((key) => key + 1); notify(edited ? 'Lançamento atualizado. O de-para foi auditado.' : 'Lançamento criado com sucesso.') }
+  function cargoSaved(_item, edited) { setNewFlow(undefined); setCargoModal(undefined); setRefreshKey((key) => key + 1); notify(edited ? 'Despesa da carga atualizada e auditada.' : 'Despesa da carga criada com sucesso.') }
+  function editEntry(item) { item.despesaCarga ? setCargoModal(item) : setModal(item) }
 
   if (booting) return <div className="boot"><div className="brand-mark large"><BarChart3/></div><span>Preparando o Lançamentos...</span></div>
   if (!user) return <LoginPage onLogin={loggedIn}/>
@@ -66,7 +70,7 @@ export default function App() {
     <Layout user={user} view={view} onView={navigate} onLogout={logout} onNew={newEntry}>
       <Suspense fallback={<Loading label="Carregando página..."/>}>
         {view === 'dashboard' && <DashboardPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onSeeAll={() => navigate('lancamentos')}/>}
-        {view === 'lancamentos' && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={setModal} notify={notify}/>}
+        {view === 'lancamentos' && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={editEntry} notify={notify}/>}
         {view === 'orcamentos' && user.podeVerTodos && <CadastrosPage notify={notify} onChanged={() => setRefreshKey((key) => key + 1)}/>}
         {view === 'auditoria' && user.podeVerTodos && <AuditoriaPage notify={notify}/>}
         {view === 'centros-custo' && user.podeVerTodos && <CentrosCustoPage user={user} notify={notify} onChanged={loadCatalogs}/>}
@@ -74,7 +78,8 @@ export default function App() {
       </Suspense>
     </Layout>
     {modal !== undefined && <Suspense fallback={null}><LancamentoModal item={modal} catalogs={catalogs} onClose={() => setModal(undefined)} onSaved={saved}/></Suspense>}
-    {newFlow !== undefined && <Suspense fallback={null}><NovoLancamentoFlow mode={newFlow} onMode={setNewFlow} onClose={() => setNewFlow(undefined)} onNormal={openNormalEntry}/></Suspense>}
+    {newFlow !== undefined && <Suspense fallback={null}><NovoLancamentoFlow mode={newFlow} onMode={setNewFlow} onClose={() => setNewFlow(undefined)} onNormal={openNormalEntry} catalogs={catalogs} onSaved={cargoSaved}/></Suspense>}
+    {cargoModal !== undefined && <Suspense fallback={null}><CargoExpenseModal item={cargoModal} catalogs={catalogs} onClose={() => setCargoModal(undefined)} onSaved={cargoSaved}/></Suspense>}
     <Toast toast={toast} onClose={closeToast}/>
   </>
 }
