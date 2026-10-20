@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Box, CalendarDays, Eye, Info, MapPin, PackageSearch, ReceiptText, Search, Truck, UserRound, X } from 'lucide-react'
+import { ArrowLeft, Box, CalendarDays, Eye, MapPin, PackageSearch, ReceiptText, Search, Truck, UserRound, X } from 'lucide-react'
 import { api } from './api.js'
 import { currency, number } from './format.js'
 import { FilterSelect, Modal } from './components.jsx'
@@ -106,10 +106,10 @@ function CargoLookup({ onClose, onBack }) {
           <Section icon={CalendarDays} title="Datas e operação">
             <Detail label="Montagem" value={date(data.datas?.montagem)}/><Detail label="Faturamento" value={date(data.datas?.faturamento)}/>
             <Detail label="Fechamento" value={date(data.datas?.fechamento)}/><Detail label="Saída" value={date(data.datas?.saidaVeiculo || data.datas?.saida)}/>
+            <Detail label="Conferido por" value={data.operacao?.conferencia?.nome}/><Detail label="Faturado por" value={data.operacao?.faturamento?.nome}/>
             <Detail label="Frete" value={currency(data.logistica?.valorFrete)}/>
           </Section>
         </div>
-        <div className="cargo-source-note"><Info size={15}/><span><strong>Origem dos totais:</strong> distância é o KM cadastrado na rota principal; volume é consolidado pelo WinThor a partir dos pedidos e produtos; caixas é calculado por item com <strong>quantidade ÷ unidades por caixa</strong> e depois somado.</span></div>
         {detailsOpen && <><div className="cargo-details-backdrop" onClick={() => setDetailsOpen(false)}/><section className="cargo-details-browser" role="dialog" aria-modal="true" aria-label="Pedidos e itens da carga">
           <header><div><h3>Pedidos e itens da carga #{data.numeroCarga}</h3><p>Consulte um pedido específico ou todos os produtos carregados.</p></div><div className="cargo-detail-tabs"><button type="button" className={detailMode === 'pedido' ? 'active' : ''} onClick={() => setDetailMode('pedido')}>Por pedido</button><button type="button" className={detailMode === 'todos' ? 'active' : ''} onClick={() => setDetailMode('todos')}>Todos os itens</button></div><button type="button" className="icon-button cargo-details-close" onClick={() => setDetailsOpen(false)} aria-label="Fechar detalhes"><X size={19}/></button></header>
           {detailsError && <div className="form-error">{detailsError}</div>}
@@ -126,7 +126,7 @@ function CargoLookup({ onClose, onBack }) {
         </section></>}
       </div>}
     </div>
-    <footer className="modal-footer cargo-footer"><button type="button" className="secondary" onClick={onBack}><ArrowLeft size={16}/> Voltar</button><span>Consulta somente leitura</span><button type="button" className="secondary" onClick={onClose}>Fechar</button></footer>
+    <footer className="modal-footer cargo-footer"><button type="button" className="secondary" onClick={onBack}><ArrowLeft size={16}/> Voltar</button><button type="button" className="secondary" onClick={onClose}>Fechar</button></footer>
   </Modal>
 }
 

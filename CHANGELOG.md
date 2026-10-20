@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.3 — 2026-10-20
+
+- venda da carga alinhada ao total dos produtos consultados diretamente no Oracle, sem somar outras despesas dos documentos;
+- lucro total recalculado sobre a venda dos produtos;
+- nomes dos funcionários de conferência e faturamento adicionados aos dados operacionais;
+- horário real de faturamento exibido quando registrado nos pedidos do WinThor;
+- textos auxiliares de origem dos totais e consulta somente leitura removidos da interface.
+
 ## 1.4.2 — 2026-10-20
 
 - caixas calculadas por item usando `quantidade / unidades por caixa`, com soma total da carga;
