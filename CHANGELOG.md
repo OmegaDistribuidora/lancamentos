@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.2 — 2026-10-20
+
+- caixas calculadas por item usando `quantidade / unidades por caixa`, com soma total da carga;
+- custo total calculado por `quantidade × custo financeiro` e lucro por `venda - custo`;
+- custo e lucro detalhados em cada linha de produto;
+- detalhes de pedidos e produtos movidos para um popup amplo e independente;
+- status `EM ROTA`, previsão de chegada, retorno e lacre ocultados da consulta;
+- horários iguais a `00:00` omitidos, preservando horários reais quando existentes.
+
 ## 1.4.1 — 2026-10-20
 
 - acesso a despesas de carga transformado em permissão individual administrável por usuário;

@@ -275,11 +275,17 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-placeholder strong { color:#45536a; }
 .cargo-placeholder span { max-width:380px; font-size:12px; }
 .cargo-result { margin-top:18px; display:grid; gap:14px; }
-.cargo-summary { padding:15px; display:grid; grid-template-columns:auto auto 1fr auto; align-items:center; gap:18px; color:#fff; background:linear-gradient(135deg,#0b315e,#1059a5); border-radius:13px; }
+.cargo-summary { padding:15px; display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; align-items:center; gap:18px; color:#fff; background:linear-gradient(135deg,#0b315e,#1059a5); border-radius:13px; }
+.cargo-summary.no-status { grid-template-columns:auto minmax(0,1fr) auto; }
 .cargo-summary>div { min-width:0; display:flex; flex-direction:column; gap:3px; }
 .cargo-summary span:not(.cargo-status) { color:#bcd1e8; font-size:10px; text-transform:uppercase; }
 .cargo-summary strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; }
 .cargo-summary>div:first-child strong { font:800 22px Manrope,sans-serif; }
+.cargo-financial-summary { display:flex!important; flex-direction:row!important; align-items:center; gap:18px!important; }
+.cargo-financial-summary>span { display:flex; flex-direction:column; gap:3px; }
+.cargo-financial-summary small { color:#bcd1e8; font-size:9px; text-transform:uppercase; }
+.cargo-financial-summary strong { font-size:13px; }
+.cargo-financial-summary>span:last-child strong { color:#83efbd; }
 .cargo-status { padding:5px 9px; color:#0a6748; background:#d9f7e9; border-radius:99px; font-size:10px; font-weight:800; white-space:nowrap; }
 .cargo-status.cancelada { color:#a72a2a; background:#ffe1df; }
 .cargo-sections { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
@@ -298,26 +304,30 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-access-check small { font-weight:400; }
 .cargo-source-note { padding:10px 12px; display:flex; align-items:flex-start; gap:8px; color:#66758c; background:#f4f7fb; border-radius:9px; font-size:10px; line-height:1.45; }
 .cargo-source-note svg { flex:0 0 auto; color:#176fe5; }
-.cargo-details-browser { overflow:visible; border:1px solid #dfe7f1; border-radius:12px; }
-.cargo-details-browser>header { padding:13px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; border-bottom:1px solid #e5ebf2; border-radius:12px 12px 0 0; }
+.cargo-details-backdrop { position:fixed; z-index:170; inset:0; background:#071a32a8; backdrop-filter:blur(3px); }
+.cargo-details-browser { position:fixed; z-index:180; inset:4vh 3vw; overflow-y:auto; background:#fff; border:1px solid #dfe7f1; border-radius:15px; box-shadow:0 30px 90px #06172e80; }
+.cargo-details-browser>header { position:sticky; z-index:5; top:0; padding:15px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafcf5; backdrop-filter:blur(8px); border-bottom:1px solid #e5ebf2; border-radius:15px 15px 0 0; }
 .cargo-details-browser>header h3 { font-size:14px; }
 .cargo-details-browser>header p { margin-top:3px; color:#7d899b; font-size:10px; }
 .cargo-detail-tabs { padding:3px; display:flex; flex:0 0 auto; background:#eaf0f7; border-radius:8px; }
 .cargo-detail-tabs button { min-height:31px; padding:0 10px; color:#66758b; background:transparent; border:0; border-radius:6px; font-size:10px; font-weight:700; }
 .cargo-detail-tabs button.active { color:#125fca; background:#fff; box-shadow:0 2px 7px #263d5e16; }
+.cargo-details-close { flex:0 0 auto; }
 .cargo-order-selector { width:min(440px,100%); padding:13px 14px 0; }
 .cargo-customer-card { margin:12px 14px; padding:12px; display:grid; grid-template-columns:1.2fr .8fr 1.3fr .8fr; gap:12px; background:#f5f9ff; border:1px solid #e0ebf9; border-radius:10px; }
 .cargo-customer-card>div { min-width:0; display:flex; flex-direction:column; gap:3px; }
 .cargo-customer-card span { color:#7c899c; font-size:9px; text-transform:uppercase; }
 .cargo-customer-card strong { overflow-wrap:anywhere; color:#2c3d57; font-size:11px; }
 .cargo-customer-card small { color:#8390a3; font-size:9px; }
-.cargo-items-table { max-height:390px; overflow:auto; margin:12px 14px 14px; border:1px solid #e5eaf1; border-radius:9px; }
-.cargo-items-table table { min-width:1050px; font-size:10px; }
-.cargo-items-table th { position:sticky; z-index:1; top:0; padding:9px 8px; font-size:9px; }
+.cargo-items-table { overflow-x:auto; margin:12px 14px 18px; border:1px solid #e5eaf1; border-radius:9px; }
+.cargo-items-table table { min-width:880px; font-size:10px; }
+.cargo-items-table th { padding:9px 8px; font-size:9px; }
 .cargo-items-table td { padding:9px 8px; vertical-align:top; }
 .cargo-items-table td>strong:first-child { color:#176fe5; font:700 9px ui-monospace,monospace; }
 .cargo-product-name { display:block; max-width:220px; margin-top:2px; color:#344159; font-size:10px; font-weight:600; }
 .cargo-items-table td small { font-size:8px; }
+.cargo-items-table td strong { color:#334159; }
+.cargo-items-table .profit { color:#078457; }
 .cargo-no-items { padding:24px; color:#7d899b; text-align:center; font-size:11px; }
 
 /* Audit, users, catalogs */
@@ -483,14 +493,16 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .launch-type-grid,.cargo-sections { grid-template-columns:1fr; }
   .cargo-search { grid-template-columns:1fr; }
   .cargo-search .primary { width:100%; }
-  .cargo-summary { grid-template-columns:1fr auto; }
-  .cargo-summary>div:nth-of-type(2),.cargo-summary>div:nth-of-type(3) { grid-column:1/-1; }
+  .cargo-summary,.cargo-summary.no-status { grid-template-columns:1fr; }
+  .cargo-summary>* { grid-column:1; }
+  .cargo-financial-summary { width:100%; flex-wrap:wrap; }
   .cargo-footer>span { display:none; }
   .cargo-detail-grid { grid-template-columns:1fr 1fr; }
   .cargo-details-browser>header { align-items:flex-start; flex-direction:column; }
   .cargo-detail-tabs { width:100%; }
   .cargo-detail-tabs button { flex:1; }
   .cargo-customer-card { grid-template-columns:1fr 1fr; }
+  .cargo-details-browser { inset:0; border-radius:0; }
   .budget-list { grid-template-columns:1fr; }
   .budget-row { align-items:flex-start; flex-direction:column; }
   .budget-input { width:100%; }
