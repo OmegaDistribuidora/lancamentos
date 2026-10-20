@@ -1,4 +1,4 @@
-export type Perfil = 'ADMIN' | 'GERENTE_ADMINISTRATIVO' | 'DIRETORIA' | 'USUARIO';
+export type Perfil = 'ADMIN' | 'GERENTE_ADMINISTRATIVO' | 'DIRETORIA' | 'LOGISTICA' | 'USUARIO';
 
 export type AuthUser = {
   id: number;

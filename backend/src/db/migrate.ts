@@ -291,6 +291,15 @@ export async function migrate(): Promise<void> {
       await client.query(`create index if not exists idx_auditoria_catalogos on auditoria_catalogos(entidade_tipo,entidade_id,ocorrido_em desc)`);
       await client.query(`insert into migracoes (versao) values ('010_sincronizacao_catalogos')`);
     }
+    const logisticsProfileMigration = await client.query(`select 1 from migracoes where versao='011_perfil_logistica'`);
+    if (!logisticsProfileMigration.rowCount) {
+      await client.query(`alter table usuarios drop constraint if exists usuarios_perfil_check`);
+      await client.query(`
+        alter table usuarios add constraint usuarios_perfil_check
+        check (perfil in ('ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'LOGISTICA', 'USUARIO'))
+      `);
+      await client.query(`insert into migracoes (versao) values ('011_perfil_logistica')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

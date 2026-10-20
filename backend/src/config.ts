@@ -35,6 +35,11 @@ export const config = {
     secret: (process.env.ECOSYSTEM_SSO_SHARED_SECRET || '').trim(),
   },
   catalogSyncToken: (process.env.CATALOG_SYNC_TOKEN || '').trim(),
+  omegaApi: {
+    url: (process.env.OMEGA_API_URL || 'http://127.0.0.1:8787').trim().replace(/\/$/, ''),
+    key: (process.env.OMEGA_API_KEY || '').trim(),
+    timeoutMs: Number(process.env.OMEGA_API_TIMEOUT_MS || 20_000),
+  },
 };
 
 if (config.nodeEnv === 'production') {
@@ -43,6 +48,8 @@ if (config.nodeEnv === 'production') {
   if (!process.env.CORS_ALLOWED_ORIGINS) throw new Error('CORS_ALLOWED_ORIGINS é obrigatório em produção.');
   if (config.sso.enabled && config.sso.secret.length < 32) throw new Error('ECOSYSTEM_SSO_SHARED_SECRET deve ter ao menos 32 caracteres quando o SSO está habilitado.');
   if (config.catalogSyncToken.length < 32) throw new Error('CATALOG_SYNC_TOKEN deve ter ao menos 32 caracteres em produção.');
+  if (!config.omegaApi.url.startsWith('https://')) throw new Error('OMEGA_API_URL deve usar HTTPS em producao.');
+  if (config.omegaApi.key.length < 32) throw new Error('OMEGA_API_KEY deve ter ao menos 32 caracteres em producao.');
 }
 
 process.env.TZ = config.timezone;

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 — 2026-10-20
+
+- novo perfil `LOGISTICA`, mantendo acesso somente aos próprios lançamentos;
+- seletor de tipo para novos lançamentos dos perfis administrador, gerente administrativo e logística;
+- consulta somente leitura de cargas do WinThor pela API central da Ômega;
+- exibição de dados operacionais da carga, motorista, veículo, rota, datas e totais;
+- credenciais do Oracle isoladas da aplicação web e do Railway.
+
 ## 1.3.2 — 2026-10-08
 
 - campo de valor alterado para máscara monetária progressiva por centavos: `6` vira `0,06`, `65` vira `0,65` e `659` vira `6,59`.

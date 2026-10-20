@@ -256,6 +256,43 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .diff-row>span { padding:7px; background:#f8fafc; border-radius:6px; overflow-wrap:anywhere; }
 .diff-row svg { color:#8692a3; }
 
+/* Fluxo de despesas de carga */
+.launch-type-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.launch-type-card { min-height:145px; padding:20px; display:flex; flex-direction:column; align-items:flex-start; gap:16px; color:#24344f; background:#fff; border:1px solid #dfe6ef; border-radius:14px; text-align:left; transition:.18s; }
+.launch-type-card:hover { transform:translateY(-2px); border-color:#8dbaf3; box-shadow:0 12px 28px #1c579b17; }
+.launch-type-card>span:last-child { display:flex; flex-direction:column; gap:5px; }
+.launch-type-card strong { font:700 15px Manrope,sans-serif; }
+.launch-type-card small { color:#748197; line-height:1.45; }
+.launch-type-icon { width:45px; height:45px; display:grid; place-items:center; border-radius:12px; }
+.launch-type-icon.normal { color:#176fe5; background:#e7f1ff; }
+.launch-type-icon.cargo { color:#07956a; background:#e0f7ef; }
+.cargo-modal-body { padding:20px 22px; }
+.cargo-search { display:grid; grid-template-columns:1fr auto; align-items:end; gap:11px; }
+.cargo-search .primary { min-width:166px; }
+.cargo-message { margin-top:14px; }
+.cargo-placeholder { min-height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#8592a5; text-align:center; }
+.cargo-placeholder svg { color:#4f8bd7; }
+.cargo-placeholder strong { color:#45536a; }
+.cargo-placeholder span { max-width:380px; font-size:12px; }
+.cargo-result { margin-top:18px; display:grid; gap:14px; }
+.cargo-summary { padding:15px; display:grid; grid-template-columns:auto auto 1fr auto; align-items:center; gap:18px; color:#fff; background:linear-gradient(135deg,#0b315e,#1059a5); border-radius:13px; }
+.cargo-summary>div { min-width:0; display:flex; flex-direction:column; gap:3px; }
+.cargo-summary span:not(.cargo-status) { color:#bcd1e8; font-size:10px; text-transform:uppercase; }
+.cargo-summary strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; }
+.cargo-summary>div:first-child strong { font:800 22px Manrope,sans-serif; }
+.cargo-status { padding:5px 9px; color:#0a6748; background:#d9f7e9; border-radius:99px; font-size:10px; font-weight:800; white-space:nowrap; }
+.cargo-status.cancelada { color:#a72a2a; background:#ffe1df; }
+.cargo-sections { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.cargo-section { padding:14px; border:1px solid #e4eaf2; border-radius:12px; background:#fbfcfe; }
+.cargo-section>header { display:flex; align-items:center; gap:8px; margin-bottom:13px; color:#176fe5; }
+.cargo-section h3 { color:#273750; font-size:13px; }
+.cargo-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+.cargo-detail { min-width:0; display:flex; flex-direction:column; gap:3px; }
+.cargo-detail span { color:#8490a3; font-size:10px; text-transform:uppercase; }
+.cargo-detail strong { overflow-wrap:anywhere; color:#344159; font-size:12px; }
+.cargo-footer { align-items:center; }
+.cargo-footer>span { margin:auto; color:#8692a4; font-size:11px; }
+
 /* Audit, users, catalogs */
 .audit-filters { grid-template-columns:minmax(250px,1fr) 220px; justify-content:start; }
 .cost-center-filters { grid-template-columns:minmax(260px,1fr) minmax(220px,300px); }
@@ -416,6 +453,13 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .diff-head,.diff-row { grid-template-columns:1fr; }
   .diff-head { display:none; }
   .diff-row svg { transform:rotate(90deg); justify-self:center; }
+  .launch-type-grid,.cargo-sections { grid-template-columns:1fr; }
+  .cargo-search { grid-template-columns:1fr; }
+  .cargo-search .primary { width:100%; }
+  .cargo-summary { grid-template-columns:1fr auto; }
+  .cargo-summary>div:nth-of-type(2),.cargo-summary>div:nth-of-type(3) { grid-column:1/-1; }
+  .cargo-footer>span { display:none; }
+  .cargo-detail-grid { grid-template-columns:1fr 1fr; }
   .budget-list { grid-template-columns:1fr; }
   .budget-row { align-items:flex-start; flex-direction:column; }
   .budget-input { width:100%; }

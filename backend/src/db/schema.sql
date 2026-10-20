@@ -50,7 +50,7 @@ create table if not exists usuarios (
   login varchar(100) not null unique,
   senha_hash text,
   perfil varchar(40) not null default 'USUARIO'
-    check (perfil in ('ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'USUARIO')),
+    check (perfil in ('ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'LOGISTICA', 'USUARIO')),
   ativo boolean not null default true,
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now()

@@ -15,7 +15,7 @@ export const monthLabel = (month) => {
   if (Number.isNaN(date.getTime())) return raw
   return new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(date).replace('.', '')
 }
-export const profileLabel = (profile) => ({ ADMIN: 'Administrador', GERENTE_ADMINISTRATIVO: 'Gerente administrativo', DIRETORIA: 'Diretoria', USUARIO: 'Usuário' }[profile] || profile)
+export const profileLabel = (profile) => ({ ADMIN: 'Administrador', GERENTE_ADMINISTRATIVO: 'Gerente administrativo', DIRETORIA: 'Diretoria', LOGISTICA: 'Logística', USUARIO: 'Usuário' }[profile] || profile)
 
 export const periodOptions = [
   { value: 'hoje', label: 'Hoje' },

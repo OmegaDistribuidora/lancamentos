@@ -4,7 +4,7 @@ import { pool } from '../db/pool.js';
 import { badRequest, forbidden, positiveId, text } from '../http.js';
 import type { Perfil } from '../types.js';
 
-const PROFILES: Perfil[] = ['ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'USUARIO'];
+const PROFILES: Perfil[] = ['ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'LOGISTICA', 'USUARIO'];
 
 function loginValue(value: unknown): string {
   const login = text(value, 'Login', 100).toLowerCase();

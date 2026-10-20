@@ -49,12 +49,23 @@ export function isAdmin(user: AuthUser): boolean {
   return user.perfil === 'ADMIN';
 }
 
+export function canAccessCargoExpenses(user: AuthUser): boolean {
+  return ['ADMIN', 'GERENTE_ADMINISTRATIVO', 'LOGISTICA'].includes(user.perfil);
+}
+
 async function profile(user: AuthUser) {
   const [sedes, centros] = await Promise.all([
     pool.query(`select s.id, s.nome from sedes s join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and s.ativo order by s.nome`, [user.id]),
     pool.query(`select c.id, c.nome, c.sede_id as "sedeId" from centros_custo c join usuario_centros_custo uc on uc.centro_custo_id=c.id where uc.usuario_id=$1 and c.ativo order by c.sede_id, c.nome`, [user.id]),
   ]);
-  return { ...user, podeVerTodos: isPrivileged(user), podeAdministrar: isAdmin(user), sedes: sedes.rows, centrosCusto: centros.rows };
+  return {
+    ...user,
+    podeVerTodos: isPrivileged(user),
+    podeAdministrar: isAdmin(user),
+    podeConsultarCargas: canAccessCargoExpenses(user),
+    sedes: sedes.rows,
+    centrosCusto: centros.rows,
+  };
 }
 
 function unauthorized(reply: FastifyReply): void {

@@ -12,6 +12,7 @@ const AuditoriaPage = lazy(() => import('./AuditoriaPage.jsx'))
 const UsuariosPage = lazy(() => import('./UsuariosPage.jsx'))
 const CadastrosPage = lazy(() => import('./CadastrosPage.jsx'))
 const CentrosCustoPage = lazy(() => import('./CentrosCustoPage.jsx'))
+const NovoLancamentoFlow = lazy(() => import('./NovoLancamentoFlow.jsx'))
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -19,6 +20,7 @@ export default function App() {
   const [booting, setBooting] = useState(true)
   const [view, setView] = useState('dashboard')
   const [modal, setModal] = useState(undefined)
+  const [newFlow, setNewFlow] = useState(undefined)
   const [refreshKey, setRefreshKey] = useState(0)
   const [toast, setToast] = useState(null)
   const notify = useCallback((message, type = 'success') => setToast({ message, type, id: Date.now() }), [])
@@ -48,7 +50,12 @@ export default function App() {
   function logout() { setToken(''); setUser(null); setView('dashboard'); setCatalogs({ sedes: [], centrosCusto: [], gruposContas: [], contas: [] }) }
   function navigate(next) { setView(next); void loadCatalogs().catch(() => undefined) }
   function newEntry() {
+    if (user.podeConsultarCargas) return setNewFlow('choice')
+    openNormalEntry()
+  }
+  function openNormalEntry() {
     if (!catalogs.sedes.length || !catalogs.centrosCusto.length) return notify('Seu usuário precisa ter sede e centro de custo liberados.', 'error')
+    setNewFlow(undefined)
     setModal(null)
   }
   function saved(_item, edited) { setModal(undefined); setRefreshKey((key) => key + 1); notify(edited ? 'Lançamento atualizado. O de-para foi auditado.' : 'Lançamento criado com sucesso.') }
@@ -67,6 +74,7 @@ export default function App() {
       </Suspense>
     </Layout>
     {modal !== undefined && <Suspense fallback={null}><LancamentoModal item={modal} catalogs={catalogs} onClose={() => setModal(undefined)} onSaved={saved}/></Suspense>}
+    {newFlow !== undefined && <Suspense fallback={null}><NovoLancamentoFlow mode={newFlow} onMode={setNewFlow} onClose={() => setNewFlow(undefined)} onNormal={openNormalEntry}/></Suspense>}
     <Toast toast={toast} onClose={closeToast}/>
   </>
 }
