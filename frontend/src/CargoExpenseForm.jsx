@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api } from './api.js'
 import { currency, todayFortaleza } from './format.js'
@@ -44,7 +44,6 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const [form, setForm] = useState({
     dataPagamento: launch?.dataPagamento || today,
     sedeId: initialSede,
-    centroCustoId: launch?.centroCustoId || catalogs.centrosCusto.find((item) => String(item.sedeId) === String(initialSede))?.id || '',
     kmPorLitro: expense?.kmPorLitro ?? '', kmInicial: expense?.kmInicial ?? '', kmFinal: expense?.kmFinal ?? '',
     observacao: launch?.observacao || '',
   })
@@ -54,7 +53,6 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   ]))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const centers = useMemo(() => catalogs.centrosCusto.filter((item) => String(item.sedeId) === String(form.sedeId)), [catalogs.centrosCusto, form.sedeId])
   const totalPercorrido = Math.max(0, decimalValue(form.kmFinal) - decimalValue(form.kmInicial))
   const kmPorLitro = decimalValue(form.kmPorLitro)
   const valorCombustivel = moneyInputToNumber(money.valorCombustivel)
@@ -65,11 +63,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const lucroFinal = Math.round((lucroCarga - totalDespesas) * 100) / 100
 
   function change(key, value) {
-    setForm((current) => {
-      if (key !== 'sedeId') return { ...current, [key]: value }
-      const first = catalogs.centrosCusto.find((item) => String(item.sedeId) === String(value))
-      return { ...current, sedeId: value, centroCustoId: first?.id || '' }
-    })
+    setForm((current) => ({ ...current, [key]: value }))
   }
 
   async function submit(event) {
@@ -93,10 +87,9 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
 
   return <form onSubmit={submit} className="cargo-expense-form">
     <div className="modal-body form-grid">
-      <div className="auto-info full cargo-expense-context"><div><span>Carga</span><strong>#{cargo?.numeroCarga || expense?.numeroCarga}</strong></div><div><span>Grupo / conta</span><strong>Despesas de Carga</strong></div><div><span>Lucro da carga</span><strong>{currency(lucroCarga)}</strong></div></div>
+      <div className="auto-info full cargo-expense-context"><div><span>Carga</span><strong>#{cargo?.numeroCarga || expense?.numeroCarga}</strong></div><div><span>Centro de custo</span><strong>Cargas</strong></div><div><span>Grupo / conta</span><strong>Despesas de Carga</strong></div><div><span>Lucro da carga</span><strong>{currency(lucroCarga)}</strong></div></div>
       <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
       <label>Sede<select required value={form.sedeId} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{catalogs.sedes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
-      <label>Centro de custo<select required value={form.centroCustoId} onChange={(event) => change('centroCustoId', event.target.value)}><option value="">Selecione</option>{centers.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
       <label>Km/L<input required type="text" inputMode="decimal" value={form.kmPorLitro} onChange={(event) => change('kmPorLitro', event.target.value.replace(/[^0-9,.]/g, ''))} placeholder="Ex.: 8,5"/></label>
       <MoneyField label="Valor do combustível" value={money.valorCombustivel} onChange={(value) => setMoney((current) => ({ ...current, valorCombustivel: value }))}/>
       <label>Km inicial<input required type="text" inputMode="decimal" value={form.kmInicial} onChange={(event) => change('kmInicial', event.target.value.replace(/[^0-9,.]/g, ''))}/></label>

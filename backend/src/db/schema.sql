@@ -12,6 +12,7 @@ create table if not exists centros_custo (
   sede_id bigint not null references sedes(id) on delete cascade,
   nome varchar(160) not null,
   ativo boolean not null default true,
+  uso_exclusivo_carga boolean not null default false,
   criado_em timestamptz not null default now(),
   constraint uq_centros_custo_sede_nome unique (sede_id, nome),
   constraint uq_centros_custo_id_sede unique (id, sede_id)

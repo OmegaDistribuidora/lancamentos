@@ -354,6 +354,17 @@ export async function migrate(): Promise<void> {
       await client.query(`create index if not exists idx_despesas_cargas_numero on despesas_cargas(numero_carga)`);
       await client.query(`insert into migracoes (versao) values ('013_despesas_cargas')`);
     }
+    const cargoCostCenterMigration = await client.query(`select 1 from migracoes where versao='014_centro_custo_cargas'`);
+    if (!cargoCostCenterMigration.rowCount) {
+      await client.query(`alter table centros_custo add column if not exists uso_exclusivo_carga boolean not null default false`);
+      await client.query(`
+        insert into centros_custo (sede_id,nome,ativo,uso_exclusivo_carga)
+        select id,'CARGAS',true,true from sedes where ativo
+        on conflict (sede_id,nome) do update
+        set ativo=true,uso_exclusivo_carga=true
+      `);
+      await client.query(`insert into migracoes (versao) values ('014_centro_custo_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

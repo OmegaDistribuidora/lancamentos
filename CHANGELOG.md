@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1 — 2026-10-20
+
+- centro de custo interno `CARGAS` criado automaticamente para cada sede e aplicado sem seleção manual;
+- bloqueio antecipado de nova despesa quando a carga já possui lançamento ativo;
+- mensagens específicas para API Ômega offline, tempo limite e respostas HTTP com erro;
+- fonte dos KPIs reduzida para exibir valores grandes integralmente, sem reticências.
+
 ## 1.5.0 — 2026-10-20
 
 - bonificações do WinThor identificadas por cobrança `BNF`, com venda zerada, custo preservado e lucro negativo por item;

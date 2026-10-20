@@ -11,6 +11,7 @@ type Centro = {
   sedeId: number | string;
   sede: string;
   ativo: boolean;
+  usoExclusivoCarga: boolean;
 };
 
 function nomeCentro(value: unknown): string {
@@ -24,7 +25,7 @@ async function sedeAtiva(client: PoolClient, sedeId: number): Promise<void> {
 
 async function centro(client: PoolClient, id: number, somenteAtivo = true): Promise<Centro> {
   const result = await client.query<Centro>(`
-    select c.id,c.nome,c.sede_id as "sedeId",s.nome as sede,c.ativo
+    select c.id,c.nome,c.sede_id as "sedeId",s.nome as sede,c.ativo,c.uso_exclusivo_carga as "usoExclusivoCarga"
     from centros_custo c join sedes s on s.id=c.sede_id
     where c.id=$1 ${somenteAtivo ? 'and c.ativo' : ''}
     for update of c
@@ -83,7 +84,7 @@ export async function registerCostCenterRoutes(app: FastifyInstance): Promise<vo
         select c.id,c.nome,c.sede_id as "sedeId",s.nome as sede,
           (select count(*)::int from lancamentos l where l.centro_custo_id=c.id) as "quantidadeLancamentos"
         from centros_custo c join sedes s on s.id=c.sede_id
-        where c.ativo and s.ativo order by s.nome,c.nome
+        where c.ativo and not c.uso_exclusivo_carga and s.ativo order by s.nome,c.nome
       `),
     ]);
     return { sedes: sedes.rows, centrosCusto: centros.rows };
@@ -95,6 +96,7 @@ export async function registerCostCenterRoutes(app: FastifyInstance): Promise<vo
     const body = (request.body || {}) as Record<string, unknown>;
     const sedeId = positiveId(body.sedeId, 'Sede');
     const nome = nomeCentro(body.nome);
+    if (nome === 'CARGAS') badRequest('CARGAS é um centro de custo interno e exclusivo das despesas de carga.');
     const client = await pool.connect();
     try {
       await client.query('begin');
@@ -142,6 +144,7 @@ export async function registerCostCenterRoutes(app: FastifyInstance): Promise<vo
       await client.query('begin');
       await client.query(`select pg_advisory_xact_lock(hashtext('centros_custo_catalogo'))`);
       const antes = await centro(client, id);
+      if (antes.usoExclusivoCarga) forbidden('O centro de custo CARGAS é interno e não pode ser alterado.');
       await sedeAtiva(client, sedeId);
       if (Number(antes.sedeId) === sedeId && antes.nome.toLocaleUpperCase('pt-BR') === nome) {
         await client.query('commit');
@@ -200,6 +203,7 @@ export async function registerCostCenterRoutes(app: FastifyInstance): Promise<vo
     try {
       await client.query('begin');
       const antes = await centro(client, id);
+      if (antes.usoExclusivoCarga) forbidden('O centro de custo CARGAS é interno e não pode ser excluído.');
       await client.query(`delete from usuario_centros_custo where centro_custo_id=$1`, [id]);
       await client.query(`update centros_custo set ativo=false where id=$1`, [id]);
       await auditar(client, user, id, 'EXCLUSAO', antes, null);

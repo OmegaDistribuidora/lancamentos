@@ -68,23 +68,19 @@ async function validateCargoAccess(client: PoolClient, user: AuthUser, payload: 
   const dataPagamento = dateOnly(payload.dataPagamento, 'Data de pagamento');
   if (dataPagamento > hojeFortaleza()) badRequest('A data de pagamento nao pode ser futura.');
   const sedeId = positiveId(payload.sedeId, 'Sede');
-  const centroCustoId = positiveId(payload.centroCustoId, 'Centro de custo');
   const result = await client.query(`
-    select s.id as "sedeId", g.id as "grupoContaId", c.id as "contaId",
-      exists(select 1 from usuario_sedes where usuario_id=$1 and sede_id=s.id) as "sedePermitida",
-      exists(select 1 from centros_custo cc where cc.id=$3 and cc.sede_id=s.id and cc.ativo) as "centroDaSede",
-      exists(select 1 from usuario_centros_custo where usuario_id=$1 and centro_custo_id=$3) as "centroPermitido"
+    select s.id as "sedeId", cc.id as "centroCustoId", g.id as "grupoContaId", c.id as "contaId",
+      exists(select 1 from usuario_sedes where usuario_id=$1 and sede_id=s.id) as "sedePermitida"
     from sedes s
+    join centros_custo cc on cc.sede_id=s.id and cc.uso_exclusivo_carga and cc.ativo
     join grupos_contas g on g.catalogo=s.catalogo_contas and g.uso_exclusivo_carga and g.ativo
     join contas c on c.catalogo=s.catalogo_contas and c.grupo_conta_id=g.id and c.uso_exclusivo_carga and c.ativo
     where s.id=$2 and s.ativo limit 1
-  `, [user.id, sedeId, centroCustoId]);
+  `, [user.id, sedeId]);
   const row = result.rows[0];
   if (!row) badRequest('Sede ou conta exclusiva de despesas de carga nao encontrada.');
   if (!isAdmin(user) && !row.sedePermitida) badRequest('A sede nao esta liberada para este usuario.');
-  if (!row.centroDaSede) badRequest('O centro de custo nao pertence a sede selecionada.');
-  if (!isAdmin(user) && !row.centroPermitido) badRequest('O centro de custo nao esta liberado para este usuario.');
-  return { dataPagamento, sedeId, centroCustoId, grupoContaId: Number(row.grupoContaId), contaId: Number(row.contaId), observacao: optionalText(payload.observacao) };
+  return { dataPagamento, sedeId, centroCustoId: Number(row.centroCustoId), grupoContaId: Number(row.grupoContaId), contaId: Number(row.contaId), observacao: optionalText(payload.observacao) };
 }
 
 async function getCargoExpense(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool) {
@@ -149,7 +145,7 @@ async function validateAccess(client: PoolClient, user: AuthUser, payload: Recor
     `select
       exists(select 1 from usuario_sedes where usuario_id=$1 and sede_id=$2) as sede,
       exists(select 1 from sedes where id=$2 and ativo) as "sedeExiste",
-      exists(select 1 from centros_custo where id=$3 and sede_id=$2 and ativo) as "centroDaSede",
+      exists(select 1 from centros_custo where id=$3 and sede_id=$2 and ativo and not uso_exclusivo_carga) as "centroDaSede",
       exists(select 1 from usuario_centros_custo where usuario_id=$1 and centro_custo_id=$3) as "centroPermitido",
       exists(
         select 1 from contas c
@@ -233,6 +229,11 @@ export async function registerLancamentoRoutes(app: FastifyInstance): Promise<vo
     if (!canAccessCargoExpenses(user)) forbidden('Seu perfil não possui acesso a despesas de carga.');
     const numeroCarga = positiveId((request.params as { numeroCarga: string }).numeroCarga, 'Número da carga');
     const payload = (request.body || {}) as Record<string, unknown>;
+    const existing = await pool.query(`
+      select l.numero_lancamento from despesas_cargas dc join lancamentos l on l.numero_lancamento=dc.numero_lancamento
+      where dc.numero_carga=$1 and l.excluido_em is null limit 1
+    `, [numeroCarga]);
+    if (existing.rowCount) badRequest(`A carga ${numeroCarga} já possui uma despesa no lançamento #${existing.rows[0].numero_lancamento}.`);
     const [resumoCarga, detalhesCarga] = await Promise.all([fetchCarga(numeroCarga), fetchCarga(numeroCarga, true)]);
     const lucroCarga = Number((resumoCarga.totais as Record<string, unknown> | undefined)?.lucro);
     if (!Number.isFinite(lucroCarga)) badRequest('O lucro da carga não foi retornado pelo WinThor.');

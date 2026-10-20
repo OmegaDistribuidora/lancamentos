@@ -27,13 +27,13 @@ export async function registerCatalogRoutes(app: FastifyInstance): Promise<void>
         ? pool.query(`select id, nome, catalogo_contas as "catalogoContas" from sedes where ativo order by nome`)
         : pool.query(`select s.id, s.nome, s.catalogo_contas as "catalogoContas" from sedes s join usuario_sedes us on us.sede_id=s.id where us.usuario_id=$1 and s.ativo order by s.nome`, [user.id]),
       admin
-        ? pool.query(`select id, nome, sede_id as "sedeId" from centros_custo where ativo order by sede_id, nome`)
+        ? pool.query(`select id, nome, sede_id as "sedeId" from centros_custo where ativo and not uso_exclusivo_carga order by sede_id, nome`)
         : pool.query(`
             select c.id, c.nome, c.sede_id as "sedeId"
             from centros_custo c
             join usuario_centros_custo uc on uc.centro_custo_id=c.id
             join usuario_sedes us on us.sede_id=c.sede_id and us.usuario_id=uc.usuario_id
-            where uc.usuario_id=$1 and c.ativo order by c.sede_id, c.nome
+            where uc.usuario_id=$1 and c.ativo and not c.uso_exclusivo_carga order by c.sede_id, c.nome
           `, [user.id]),
       admin
         ? pool.query(`select id, codigo, nome, cor, catalogo from grupos_contas where ativo and presente_origem and not uso_exclusivo_carga order by catalogo,codigo`)
