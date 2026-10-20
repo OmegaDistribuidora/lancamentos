@@ -365,6 +365,17 @@ export async function migrate(): Promise<void> {
       `);
       await client.query(`insert into migracoes (versao) values ('014_centro_custo_cargas')`);
     }
+    const relocateCargoExpensesMigration = await client.query(`select 1 from migracoes where versao='015_realocar_despesas_para_cargas'`);
+    if (!relocateCargoExpensesMigration.rowCount) {
+      await client.query(`
+        update lancamentos l set centro_custo_id=cc.id,atualizado_em=now()
+        from despesas_cargas dc,centros_custo cc
+        where dc.numero_lancamento=l.numero_lancamento
+          and cc.sede_id=l.sede_id and cc.uso_exclusivo_carga and cc.ativo
+          and l.centro_custo_id<>cc.id
+      `);
+      await client.query(`insert into migracoes (versao) values ('015_realocar_despesas_para_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1
