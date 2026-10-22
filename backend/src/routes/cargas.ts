@@ -57,7 +57,11 @@ async function fetchCargaFromOmega(numero: number, detalhes: boolean): Promise<R
   let response: Response;
   try {
     response = await fetch(`${config.omegaApi.url}/v1/winthor/cargas/${numero}${detalhes ? '/detalhes' : ''}`, {
-      headers: { 'X-API-Key': config.omegaApi.key, Accept: 'application/json' },
+      headers: {
+        'X-API-Key': config.omegaApi.key,
+        'X-Client-Name': 'lancamentos',
+        Accept: 'application/json',
+      },
       signal: AbortSignal.timeout(config.omegaApi.timeoutMs),
     });
   } catch (error) {
