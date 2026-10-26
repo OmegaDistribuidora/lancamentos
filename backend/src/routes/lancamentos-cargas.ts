@@ -24,7 +24,9 @@ const SELECT_LISTA = `
     lc.data_pagamento::text as "dataPagamento",lc.sede_id as "sedeId",s.nome as sede,
     lc.observacao,lc.total_despesas::float8 as "totalDespesas",lc.lucro_carga::float8 as "lucroCarga",
     lc.lucro_final::float8 as "lucroFinal",lc.resumo_carga#>>'{motorista,nome}' as motorista,
-    lc.resumo_carga->>'destino' as destino,lc.criado_em as "criadoEm",lc.atualizado_em as "atualizadoEm"
+    lc.resumo_carga->>'destino' as destino,
+    (lc.resumo_carga#>>'{totais,valor}')::float8 as "valorVendaCarga",
+    lc.criado_em as "criadoEm",lc.atualizado_em as "atualizadoEm"
   from lancamentos_cargas lc join usuarios u on u.id=lc.colaborador_id join sedes s on s.id=lc.sede_id`;
 
 const SELECT_DETALHE = `

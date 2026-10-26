@@ -345,6 +345,11 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-expense-totals strong { font-size:19px; }
 .cargo-expense-totals strong small { color:inherit; font-size:14px; font-weight:800; }
 .cargo-expense-totals .positive strong { color:#078a55; }
+.cargo-expense-percentages { margin-top:3px; display:flex!important; flex-direction:column; gap:2px!important; }
+.cargo-expense-percentages small { color:#65758b; font-size:10px; }
+.cargo-trip-sheet-total { padding:11px 15px; background:#f8f5ff; border-color:#e4dcfa; }
+.cargo-trip-sheet-total strong { color:#6246a8; font-size:18px; }
+.cargo-trip-sheet-total small { color:#7c7194; font-size:9px; }
 .open-loads-panel { margin-top:16px; overflow:hidden; border:1px solid #dfe7f1; border-radius:13px; background:#fbfcfe; }
 .open-loads-panel>header { padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:14px; border-bottom:1px solid #e5ebf2; background:#f5f9ff; }
 .open-loads-title { min-width:0; display:flex; align-items:center; gap:10px; color:#176fe5; }

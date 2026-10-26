@@ -16,9 +16,16 @@ const ADDITIONAL = [
   ['outros', 'Outros'],
 ]
 
+const CARGO_SITE_NAMES = new Set(['Ômega Barroso', 'Ômega Cariri', 'Ômega Matriz'])
+
 const decimalValue = (value) => {
   const parsed = Number(String(value || '').replace(',', '.'))
   return Number.isFinite(parsed) ? parsed : 0
+}
+
+const percentText = (value, base) => {
+  if (!Number.isFinite(value) || !Number.isFinite(base) || base === 0) return '—'
+  return `${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format((value / base) * 100)}%`
 }
 
 function MoneyField({ label, value, onChange }) {
@@ -40,7 +47,8 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const today = todayFortaleza()
   const launch = initial?.lancamento || initial
   const expense = initial?.despesaCarga || initial
-  const initialSede = launch?.sedeId || catalogs.sedes[0]?.id || ''
+  const cargoSites = numeroLancamento ? catalogs.sedes : catalogs.sedes.filter((site) => CARGO_SITE_NAMES.has(site.nome))
+  const initialSede = launch?.sedeId || cargoSites[0]?.id || ''
   const [form, setForm] = useState({
     dataPagamento: launch?.dataPagamento || today,
     sedeId: initialSede,
@@ -58,14 +66,16 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const valorCombustivel = moneyInputToNumber(money.valorCombustivel)
   const despesaCombustivel = kmPorLitro > 0 ? Math.round(((totalPercorrido / kmPorLitro) * valorCombustivel) * 100) / 100 : 0
   const totalAdicionais = ADDITIONAL.reduce((sum, [key]) => sum + moneyInputToNumber(money[key]), 0)
+  const totalFichaViagem = Math.round(ADDITIONAL
+    .filter(([key]) => key !== 'salarioFuncionarios')
+    .reduce((sum, [key]) => sum + moneyInputToNumber(money[key]), 0) * 100) / 100
   const totalDespesas = Math.round((despesaCombustivel + totalAdicionais) * 100) / 100
   const lucroCarga = Number(cargo?.totais?.lucro ?? expense?.lucroCarga ?? 0)
   const lucroFinal = Math.round((lucroCarga - totalDespesas) * 100) / 100
   const vendaCarga = Number(cargo?.totais?.valor ?? expense?.resumoCarga?.totais?.valor ?? 0)
-  const percentualLucro = vendaCarga > 0 ? (lucroFinal / vendaCarga) * 100 : null
-  const percentualLucroFormatado = percentualLucro == null ? '—' : new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 0, maximumFractionDigits: 2,
-  }).format(percentualLucro)
+  const percentualLucro = percentText(lucroFinal, vendaCarga)
+  const percentualDespesaVenda = percentText(totalDespesas, vendaCarga)
+  const percentualDespesaLucroFinal = percentText(totalDespesas, lucroFinal)
 
   function change(key, value) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -94,7 +104,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
     <div className="modal-body form-grid">
       <div className="auto-info full cargo-expense-context"><div><span>Carga</span><strong>#{cargo?.numeroCarga || expense?.numeroCarga}</strong></div><div><span>Centro de custo</span><strong>Cargas</strong></div><div><span>Grupo / conta</span><strong>Despesas de Carga</strong></div><div><span>Lucro da carga</span><strong>{currency(lucroCarga)}</strong></div></div>
       <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
-      <label>Sede<select required value={form.sedeId} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{catalogs.sedes.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
+      <label>Sede<select required value={form.sedeId} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{cargoSites.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
       <label>Km/L<input required type="text" inputMode="decimal" value={form.kmPorLitro} onChange={(event) => change('kmPorLitro', event.target.value.replace(/[^0-9,.]/g, ''))} placeholder="Ex.: 8,5"/></label>
       <MoneyField label="Valor do combustível" value={money.valorCombustivel} onChange={(value) => setMoney((current) => ({ ...current, valorCombustivel: value }))}/>
       <label>Km inicial<input required type="text" inputMode="decimal" value={form.kmInicial} onChange={(event) => change('kmInicial', event.target.value.replace(/[^0-9,.]/g, ''))}/></label>
@@ -103,7 +113,8 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
       <div className="calculated-field"><span>Despesa com combustível</span><strong>{currency(despesaCombustivel)}</strong></div>
       <div className="form-section-title full">Despesas adicionais</div>
       {ADDITIONAL.map(([key, label]) => <MoneyField key={key} label={label} value={money[key]} onChange={(value) => setMoney((current) => ({ ...current, [key]: value }))}/>)}
-      <div className="cargo-expense-totals full"><div><span>Total das despesas</span><strong>{currency(totalDespesas)}</strong></div><div className={lucroFinal < 0 ? 'negative' : 'positive'}><span>Lucro após despesas</span><strong>{currency(lucroFinal)} <small>({percentualLucroFormatado}%)</small></strong></div></div>
+      <div className="calculated-field cargo-trip-sheet-total full"><span>Total de despesa da ficha de viagem</span><strong>{currency(totalFichaViagem)}</strong><small>Não considera combustível nem salário de funcionários.</small></div>
+      <div className="cargo-expense-totals full"><div><span>Total das despesas</span><strong>{currency(totalDespesas)}</strong><div className="cargo-expense-percentages"><small>{percentualDespesaVenda} da venda total</small><small>{percentualDespesaLucroFinal} do lucro após despesas</small></div></div><div className={lucroFinal < 0 ? 'negative' : 'positive'}><span>Lucro após despesas</span><strong>{currency(lucroFinal)} <small>({percentualLucro})</small></strong></div></div>
       <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes da despesa da carga."/></label>
       {error && <div className="form-error full">{error}</div>}
     </div>
