@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Box, CalendarDays, Eye, MapPin, PackageSearch, Search, UserRound, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft, ArrowRight, Box, CalendarDays, Eye, MapPin, PackageSearch, RefreshCw, Search, UserRound, X } from 'lucide-react'
 import { api } from './api.js'
 import CargoExpenseForm from './CargoExpenseForm.jsx'
 import { currency, number } from './format.js'
@@ -35,13 +35,30 @@ function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
   const [detailMode, setDetailMode] = useState('pedido')
   const [selectedPedido, setSelectedPedido] = useState('')
   const [expenseOpen, setExpenseOpen] = useState(false)
+  const [openLoads, setOpenLoads] = useState([])
+  const [openLoadsLoading, setOpenLoadsLoading] = useState(true)
+  const [openLoadsError, setOpenLoadsError] = useState('')
+
+  const loadOpenLoads = useCallback(async () => {
+    setOpenLoadsLoading(true); setOpenLoadsError('')
+    try {
+      const result = await api('/api/cargas-abertas')
+      setOpenLoads(Array.isArray(result.cargas) ? result.cargas : [])
+    } catch (err) { setOpenLoadsError(err.message) } finally { setOpenLoadsLoading(false) }
+  }, [])
+
+  useEffect(() => { loadOpenLoads() }, [loadOpenLoads])
+
+  async function consultCargo(numero) {
+    if (!Number.isSafeInteger(numero) || numero <= 0) return setError('Informe um número de carga válido.')
+    setNumeroCarga(String(numero))
+    setLoading(true); setError(''); setData(null); setDetails(null); setDetailsOpen(false); setDetailsError('')
+    try { setData(await api(`/api/cargas/${numero}`)) } catch (err) { setError(err.message) } finally { setLoading(false) }
+  }
 
   async function search(event) {
     event.preventDefault()
-    const numero = Number(numeroCarga)
-    if (!Number.isSafeInteger(numero) || numero <= 0) return setError('Informe um número de carga válido.')
-    setLoading(true); setError(''); setData(null); setDetails(null); setDetailsOpen(false); setDetailsError('')
-    try { setData(await api(`/api/cargas/${numero}`)) } catch (err) { setError(err.message) } finally { setLoading(false) }
+    await consultCargo(Number(numeroCarga))
   }
 
   async function loadDetails() {
@@ -56,6 +73,9 @@ function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
 
   const selectedOrder = details?.pedidos.find((item) => String(item.numeroPedido) === String(selectedPedido))
   const visibleItems = !details ? [] : detailMode === 'todos' ? details.itens : details.itens.filter((item) => String(item.numeroPedido) === String(selectedPedido))
+  const visibleOpenLoads = numeroCarga
+    ? openLoads.filter((item) => String(item.numeroCarga).includes(numeroCarga))
+    : openLoads
 
   if (expenseOpen) return <Modal title={`Despesa da carga #${data.numeroCarga}`} subtitle="Complete os custos da viagem. O grupo e a conta são definidos automaticamente." onClose={onClose} wide>
     <CargoExpenseForm cargo={data} catalogs={catalogs} onBack={() => setExpenseOpen(false)} onSaved={onSaved}/>
@@ -68,7 +88,20 @@ function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
         <button className="primary" disabled={loading || !numeroCarga}><Search size={17}/>{loading ? 'Consultando...' : 'Consultar carga'}</button>
       </form>
       {error && <div className="form-error cargo-message">{error}</div>}
-      {!data && !error && <div className="cargo-placeholder"><PackageSearch size={34}/><strong>Informe o número da carga</strong><span>Os dados abaixo serão consultados em tempo real na filial do WinThor.</span></div>}
+      {!data && <section className="open-loads-panel">
+        <header><div className="open-loads-title"><PackageSearch size={25}/><div><strong>Informe o número da carga</strong><span>Ou selecione uma das cargas em aberto no WinThor.</span></div></div><div className="open-loads-actions"><span>{openLoadsLoading ? 'Consultando...' : `${openLoads.length} disponíveis`}</span><button type="button" className="icon-button" onClick={loadOpenLoads} disabled={openLoadsLoading} aria-label="Atualizar cargas abertas"><RefreshCw size={16}/></button></div></header>
+        {openLoadsError && <div className="form-error cargo-message">{openLoadsError}</div>}
+        {!openLoadsLoading && !openLoadsError && <div className="open-loads-list">
+          {visibleOpenLoads.map((item) => <button type="button" key={item.numeroCarga} className="open-load-card" onClick={() => consultCargo(Number(item.numeroCarga))} disabled={loading}>
+            <span className="open-load-number"><small>Carga</small><strong>#{item.numeroCarga}</strong><em>Filial {item.filial || '—'}</em></span>
+            <span><small>Montagem</small><strong>{date(item.datas?.montagem)}</strong><em>{item.rota?.descricao || item.destino || 'Rota não informada'}</em></span>
+            <span><small>Motorista</small><strong>{item.motorista?.nome || 'Não informado'}</strong><em>{[item.veiculo?.descricao, item.veiculo?.placa].filter(Boolean).join(' · ') || 'Veículo não informado'}</em></span>
+            <span className="open-load-total"><small>Valor</small><strong>{currency(item.totais?.valorDocumentos)}</strong><em>{number(item.totais?.pedidos)} pedidos · {number(item.totais?.clientes)} clientes</em></span>
+            <ArrowRight size={17}/>
+          </button>)}
+          {!visibleOpenLoads.length && <div className="open-loads-empty">Nenhuma carga em aberto corresponde ao número informado.</div>}
+        </div>}
+      </section>}
       {data && <div className="cargo-result">
         <div className={`cargo-summary ${data.situacao === 'EM ROTA' ? 'no-status' : ''}`}>
           <div><span>Carga</span><strong>#{data.numeroCarga}</strong></div>

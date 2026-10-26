@@ -6,8 +6,11 @@ import { HttpError, forbidden, positiveId } from '../http.js';
 
 const CARGA_CACHE_TTL_MS = 30 * 60 * 1_000;
 const CARGA_CACHE_MAX_ENTRIES = 200;
+const CARGAS_ABERTAS_CACHE_TTL_MS = 60 * 1_000;
 const cargaCache = new Map<string, { expiresAt: number; value: Record<string, unknown> }>();
 const cargaRequests = new Map<string, Promise<Record<string, unknown>>>();
+let cargasAbertasCache: { expiresAt: number; value: Record<string, unknown> } | undefined;
+let cargasAbertasRequest: Promise<Record<string, unknown>> | undefined;
 
 function cacheKey(numero: number, detalhes: boolean): string {
   return `${numero}:${detalhes ? 'detalhes' : 'resumo'}`;
@@ -79,7 +82,61 @@ async function fetchCargaFromOmega(numero: number, detalhes: boolean): Promise<R
   return payload;
 }
 
+async function fetchCargasAbertasFromOmega(): Promise<Record<string, unknown>> {
+  if (!config.omegaApi.key) throw new HttpError(503, 'Integracao com o WinThor nao configurada.');
+  let response: Response;
+  try {
+    response = await fetch(`${config.omegaApi.url}/v1/winthor/cargas-abertas`, {
+      headers: {
+        'X-API-Key': config.omegaApi.key,
+        'X-Client-Name': 'lancamentos',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(config.omegaApi.timeoutMs),
+    });
+  } catch (error) {
+    const timeout = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+    throw new HttpError(503, timeout
+      ? 'API Ômega indisponível: a consulta das cargas abertas excedeu o tempo limite.'
+      : 'API Ômega offline ou inacessível: não foi possível consultar as cargas abertas.');
+  }
+  const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
+  if (!response.ok) throw new HttpError(503, `API Ômega respondeu com erro HTTP ${response.status}.`);
+  return payload;
+}
+
+async function fetchCargasAbertas(): Promise<Record<string, unknown>> {
+  if (cargasAbertasCache && cargasAbertasCache.expiresAt > Date.now()) return cargasAbertasCache.value;
+  if (cargasAbertasRequest) return cargasAbertasRequest;
+  cargasAbertasRequest = fetchCargasAbertasFromOmega();
+  try {
+    const value = await cargasAbertasRequest;
+    cargasAbertasCache = { expiresAt: Date.now() + CARGAS_ABERTAS_CACHE_TTL_MS, value };
+    return value;
+  } finally {
+    cargasAbertasRequest = undefined;
+  }
+}
+
 export async function registerCargoRoutes(app: FastifyInstance): Promise<void> {
+  app.get('/api/cargas-abertas', async (request) => {
+    if (!canAccessCargoExpenses(request.authUser!)) forbidden('Seu perfil nao possui acesso a consulta de cargas.');
+    const payload = await fetchCargasAbertas();
+    const cargas = Array.isArray(payload.cargas) ? payload.cargas as Array<Record<string, unknown>> : [];
+    if (!cargas.length) return { total: 0, cargas: [] };
+    const numeros = cargas
+      .map((item) => Number(item.numeroCarga))
+      .filter((numero) => Number.isSafeInteger(numero) && numero > 0);
+    const existing = await pool.query<{ numero_carga: string }>(`
+      select numero_carga::text
+      from lancamentos_cargas
+      where numero_carga = any($1::bigint[]) and excluido_em is null
+    `, [numeros]);
+    const lancadas = new Set(existing.rows.map((row) => Number(row.numero_carga)));
+    const disponiveis = cargas.filter((item) => !lancadas.has(Number(item.numeroCarga)));
+    return { total: disponiveis.length, totalWinThor: cargas.length, cargas: disponiveis };
+  });
+
   app.get('/api/cargas/:numero', async (request) => {
     if (!canAccessCargoExpenses(request.authUser!)) forbidden('Seu perfil nao possui acesso a consulta de cargas.');
     const numero = positiveId((request.params as { numero: string }).numero, 'Numero da carga');

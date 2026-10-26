@@ -343,7 +343,28 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-expense-totals div { display:flex; flex-direction:column; gap:3px; }
 .cargo-expense-totals span { color:#718096; font-size:10px; text-transform:uppercase; }
 .cargo-expense-totals strong { font-size:19px; }
+.cargo-expense-totals strong small { color:inherit; font-size:14px; font-weight:800; }
 .cargo-expense-totals .positive strong { color:#078a55; }
+.open-loads-panel { margin-top:16px; overflow:hidden; border:1px solid #dfe7f1; border-radius:13px; background:#fbfcfe; }
+.open-loads-panel>header { padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:14px; border-bottom:1px solid #e5ebf2; background:#f5f9ff; }
+.open-loads-title { min-width:0; display:flex; align-items:center; gap:10px; color:#176fe5; }
+.open-loads-title>div { display:flex; flex-direction:column; gap:2px; }
+.open-loads-title strong { color:#263750; font-size:13px; }
+.open-loads-title span { color:#78869a; font-size:10px; }
+.open-loads-actions { flex:0 0 auto; display:flex; align-items:center; gap:8px; color:#63738a; font-size:10px; font-weight:700; }
+.open-loads-actions .icon-button:disabled { opacity:.55; }
+.open-loads-list { max-height:330px; overflow-y:auto; }
+.open-load-card { width:100%; min-height:68px; padding:10px 14px; display:grid; grid-template-columns:110px minmax(150px,.9fr) minmax(190px,1.3fr) minmax(145px,.8fr) 22px; align-items:center; gap:12px; color:#334159; text-align:left; background:#fff; border:0; border-bottom:1px solid #edf1f5; transition:background .15s ease; }
+.open-load-card:last-child { border-bottom:0; }
+.open-load-card:hover { background:#f2f7ff; }
+.open-load-card>span { min-width:0; display:flex; flex-direction:column; gap:2px; }
+.open-load-card small { color:#8794a6; font-size:9px; font-weight:700; text-transform:uppercase; }
+.open-load-card strong { overflow:hidden; color:#2d3c54; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.open-load-card em { overflow:hidden; color:#7b899d; font-size:9px; font-style:normal; text-overflow:ellipsis; white-space:nowrap; }
+.open-load-card>svg { color:#176fe5; }
+.open-load-number strong { color:#176fe5; font:800 14px ui-monospace,monospace; }
+.open-load-total { text-align:right; }
+.open-loads-empty { padding:28px 16px; color:#7d899b; text-align:center; font-size:11px; }
 .cargo-snapshot { padding:14px 18px 0; }
 .cargo-snapshot-summary { padding:12px; display:grid; grid-template-columns:auto repeat(6,1fr); gap:15px; align-items:center; background:#f6f9fd; border:1px solid #dfe8f2; border-radius:11px; }
 .cargo-snapshot-summary>svg { color:#1976e9; }
@@ -525,6 +546,12 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .cargo-financial-summary { width:100%; flex-wrap:wrap; }
   .cargo-detail-grid { grid-template-columns:1fr 1fr; }
   .cargo-expense-context,.cargo-expense-totals,.cargo-snapshot-facts { grid-template-columns:1fr; }
+  .open-loads-panel>header { align-items:flex-start; }
+  .open-loads-actions>span { display:none; }
+  .open-load-card { grid-template-columns:90px minmax(0,1fr) 18px; }
+  .open-load-card>span:nth-child(3) { grid-column:1/3; }
+  .open-load-card>span:nth-child(4) { grid-column:1/3; text-align:left; }
+  .open-load-card>svg { grid-column:3; grid-row:1/3; }
   .cargo-snapshot-summary { grid-template-columns:auto 1fr 1fr; }
   .cargo-details-browser>header { align-items:flex-start; flex-direction:column; }
   .cargo-detail-tabs { width:100%; }

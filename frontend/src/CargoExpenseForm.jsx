@@ -61,6 +61,11 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const totalDespesas = Math.round((despesaCombustivel + totalAdicionais) * 100) / 100
   const lucroCarga = Number(cargo?.totais?.lucro ?? expense?.lucroCarga ?? 0)
   const lucroFinal = Math.round((lucroCarga - totalDespesas) * 100) / 100
+  const vendaCarga = Number(cargo?.totais?.valor ?? expense?.resumoCarga?.totais?.valor ?? 0)
+  const percentualLucro = vendaCarga > 0 ? (lucroFinal / vendaCarga) * 100 : null
+  const percentualLucroFormatado = percentualLucro == null ? '—' : new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 0, maximumFractionDigits: 2,
+  }).format(percentualLucro)
 
   function change(key, value) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -98,7 +103,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
       <div className="calculated-field"><span>Despesa com combustível</span><strong>{currency(despesaCombustivel)}</strong></div>
       <div className="form-section-title full">Despesas adicionais</div>
       {ADDITIONAL.map(([key, label]) => <MoneyField key={key} label={label} value={money[key]} onChange={(value) => setMoney((current) => ({ ...current, [key]: value }))}/>)}
-      <div className="cargo-expense-totals full"><div><span>Total das despesas</span><strong>{currency(totalDespesas)}</strong></div><div className={lucroFinal < 0 ? 'negative' : 'positive'}><span>Lucro após despesas</span><strong>{currency(lucroFinal)}</strong></div></div>
+      <div className="cargo-expense-totals full"><div><span>Total das despesas</span><strong>{currency(totalDespesas)}</strong></div><div className={lucroFinal < 0 ? 'negative' : 'positive'}><span>Lucro após despesas</span><strong>{currency(lucroFinal)} <small>({percentualLucroFormatado}%)</small></strong></div></div>
       <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes da despesa da carga."/></label>
       {error && <div className="form-error full">{error}</div>}
     </div>
