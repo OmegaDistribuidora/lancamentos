@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { pool } from '../db/pool.js';
-import { isPrivileged } from '../auth.js';
-import { badRequest, dateOnly, positiveId } from '../http.js';
+import { canAccessNormalLaunches, isPrivileged } from '../auth.js';
+import { badRequest, dateOnly, forbidden, positiveId } from '../http.js';
 
 type Period = { inicio: string; fim: string; granularidade: 'dia' | 'semana' | 'mes'; label: string };
 
@@ -59,7 +59,7 @@ function evolutionSql(granularity: Period['granularidade'], startRef: string, en
       from generate_series(date_trunc('month', ${startRef}::date), date_trunc('month', ${endRef}::date), interval '1 month') inicio
     )
     select to_char(f.inicio,'YYYY-MM') as label, coalesce(sum(l.valor),0)::float8 as total
-    from faixas f left join lancamentos l on l.data_pagamento between f.inicio and f.fim and l.excluido_em is null ${filters}
+    from faixas f left join lancamentos l on l.data_pagamento between f.inicio and f.fim and l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters}
     group by f.inicio order by f.inicio`;
   if (granularity === 'semana') return `
     with faixas as (
@@ -67,18 +67,19 @@ function evolutionSql(granularity: Period['granularidade'], startRef: string, en
       from generate_series(${startRef}::date, ${endRef}::date, interval '7 days') inicio
     )
     select concat(to_char(f.inicio,'DD/MM'),' – ',to_char(f.fim,'DD/MM')) as label, coalesce(sum(l.valor),0)::float8 as total
-    from faixas f left join lancamentos l on l.data_pagamento between f.inicio and f.fim and l.excluido_em is null ${filters}
+    from faixas f left join lancamentos l on l.data_pagamento between f.inicio and f.fim and l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters}
     group by f.inicio,f.fim order by f.inicio`;
   return `
     with faixas as (select inicio::date from generate_series(${startRef}::date, ${endRef}::date, interval '1 day') inicio)
     select to_char(f.inicio,'DD/MM') as label, coalesce(sum(l.valor),0)::float8 as total
-    from faixas f left join lancamentos l on l.data_pagamento=f.inicio and l.excluido_em is null ${filters}
+    from faixas f left join lancamentos l on l.data_pagamento=f.inicio and l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters}
     group by f.inicio order by f.inicio`;
 }
 
 export async function registerDashboardRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/dashboard', async (request) => {
     const user = request.authUser!;
+    if (!canAccessNormalLaunches(user)) forbidden('Seu usuário não possui acesso à visão de lançamentos normais.');
     const privileged = isPrivileged(user);
     const query = request.query as Record<string, string | undefined>;
     const period = resolvePeriod(query);
@@ -112,7 +113,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
         where historico.conta_id=c.id and historico.sede_id=s.id and historico.competencia <= mes.competencia::date
         order by historico.competencia desc limit 1
       ) o on true
-      where c.ativo and c.presente_origem and cg.ativo and cg.presente_origem and s.ativo ${budgetSedeFilter})`;
+      where c.ativo and c.presente_origem and not c.uso_exclusivo_carga and cg.ativo and cg.presente_origem and not cg.uso_exclusivo_carga and s.ativo ${budgetSedeFilter})`;
     const groupBudget = `(select coalesce(sum(coalesce(o.valor,0)),0)::float8
       from contas c join sedes s on s.catalogo_contas=c.catalogo
       cross join generate_series(date_trunc('month',${startRef}::date),date_trunc('month',${endRef}::date),interval '1 month') mes(competencia)
@@ -121,19 +122,20 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
         where historico.conta_id=c.id and historico.sede_id=s.id and historico.competencia <= mes.competencia::date
         order by historico.competencia desc limit 1
       ) o on true
-      where c.grupo_conta_id=g.id and c.catalogo=g.catalogo and c.ativo and c.presente_origem and s.ativo ${budgetSedeFilter})`;
+      where c.grupo_conta_id=g.id and c.catalogo=g.catalogo and c.ativo and c.presente_origem and not c.uso_exclusivo_carga and s.ativo ${budgetSedeFilter})`;
 
     const [cards, evolution, groups, recent] = await Promise.all([
       pool.query(`
         select coalesce(sum(l.valor),0)::float8 as total, count(*)::int as quantidade,
           count(distinct l.grupo_conta_id)::int as categorias,
           ${totalBudget} as "orcamentoTotal"
-        from lancamentos l where l.excluido_em is null ${filters} ${range}`, params),
+        from lancamentos l where l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters} ${range}`, params),
       pool.query(evolutionSql(period.granularidade, startRef, endRef, filters), params),
       pool.query(`
         select g.nome, g.cor, coalesce(sum(l.valor),0)::float8 as total,
           case when g.ativo and g.presente_origem then ${groupBudget} else 0 end as orcamento
-        from grupos_contas g left join lancamentos l on l.grupo_conta_id=g.id and l.excluido_em is null ${filters} ${range}
+        from grupos_contas g left join lancamentos l on l.grupo_conta_id=g.id and l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters} ${range}
+        where not g.uso_exclusivo_carga
         group by g.id,g.nome,g.cor
         having (g.ativo and g.presente_origem) or count(l.numero_lancamento)>0
         order by total desc,g.codigo`, params),
@@ -141,7 +143,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
         select l.numero_lancamento as "numeroLancamento", l.data_pagamento::text as "dataPagamento", c.nome as conta,
           g.nome as "grupoConta", g.cor, u.nome_exibicao as colaborador, l.valor::float8 as valor
         from lancamentos l join contas c on c.id=l.conta_id join grupos_contas g on g.id=l.grupo_conta_id
-        join usuarios u on u.id=l.colaborador_id where l.excluido_em is null ${filters} ${range}
+        join usuarios u on u.id=l.colaborador_id where l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${filters} ${range}
         order by l.criado_em desc limit 6`, params),
     ]);
 

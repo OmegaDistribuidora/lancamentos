@@ -376,6 +376,86 @@ export async function migrate(): Promise<void> {
       `);
       await client.query(`insert into migracoes (versao) values ('015_realocar_despesas_para_cargas')`);
     }
+    const separateCargoLaunchesMigration = await client.query(`select 1 from migracoes where versao='016_separar_lancamentos_cargas'`);
+    if (!separateCargoLaunchesMigration.rowCount) {
+      await client.query(`alter table usuarios add column if not exists acesso_lancamento_normal boolean not null default true`);
+      await client.query(`
+        create table if not exists lancamentos_cargas (
+          numero_lancamento_carga bigserial primary key,
+          numero_lancamento_origem bigint unique,
+          numero_carga bigint not null,
+          data_lancamento date not null default ((now() at time zone 'America/Fortaleza')::date),
+          hora_lancamento time(0) not null default ((now() at time zone 'America/Fortaleza')::time(0)),
+          colaborador_id bigint not null references usuarios(id),
+          data_pagamento date not null,
+          sede_id bigint not null references sedes(id),
+          observacao text not null default '',
+          km_por_litro numeric(12,3) not null check (km_por_litro > 0),
+          valor_combustivel numeric(14,2) not null check (valor_combustivel >= 0),
+          km_inicial numeric(14,2) not null check (km_inicial >= 0),
+          km_final numeric(14,2) not null check (km_final >= km_inicial),
+          total_percorrido numeric(14,2) not null check (total_percorrido >= 0),
+          despesa_combustivel numeric(14,2) not null check (despesa_combustivel >= 0),
+          salario_funcionarios numeric(14,2) not null default 0 check (salario_funcionarios >= 0),
+          diarias_motoristas numeric(14,2) not null default 0 check (diarias_motoristas >= 0),
+          diarias_ajudantes numeric(14,2) not null default 0 check (diarias_ajudantes >= 0),
+          descarrego numeric(14,2) not null default 0 check (descarrego >= 0),
+          avarias numeric(14,2) not null default 0 check (avarias >= 0),
+          alimentacao numeric(14,2) not null default 0 check (alimentacao >= 0),
+          ajudante_extra numeric(14,2) not null default 0 check (ajudante_extra >= 0),
+          manutencao_veiculo numeric(14,2) not null default 0 check (manutencao_veiculo >= 0),
+          outros numeric(14,2) not null default 0 check (outros >= 0),
+          total_despesas numeric(14,2) not null check (total_despesas > 0),
+          lucro_carga numeric(14,2) not null,
+          lucro_final numeric(14,2) not null,
+          resumo_carga jsonb not null,
+          detalhes_carga jsonb not null,
+          criado_em timestamptz not null default now(),
+          atualizado_em timestamptz not null default now(),
+          excluido_em timestamptz,
+          excluido_por bigint references usuarios(id)
+        )
+      `);
+      await client.query(`create unique index if not exists uq_lancamentos_cargas_numero_ativo on lancamentos_cargas(numero_carga) where excluido_em is null`);
+      await client.query(`create index if not exists idx_lancamentos_cargas_colaborador on lancamentos_cargas(colaborador_id,criado_em desc)`);
+      await client.query(`create index if not exists idx_lancamentos_cargas_pagamento on lancamentos_cargas(data_pagamento desc) where excluido_em is null`);
+      await client.query(`
+        create table if not exists auditoria_lancamentos_cargas (
+          id bigserial primary key,
+          numero_lancamento_carga bigint not null,
+          acao varchar(20) not null check (acao in ('INSERCAO','EDICAO','EXCLUSAO')),
+          usuario_id bigint not null references usuarios(id),
+          usuario_nome varchar(120) not null,
+          dados_anteriores jsonb,
+          dados_novos jsonb,
+          alteracoes jsonb,
+          ocorrido_em timestamptz not null default now()
+        )
+      `);
+      await client.query(`create index if not exists idx_auditoria_lancamentos_cargas on auditoria_lancamentos_cargas(numero_lancamento_carga,ocorrido_em desc)`);
+      await client.query(`
+        insert into lancamentos_cargas (
+          numero_lancamento_origem,numero_carga,data_lancamento,hora_lancamento,colaborador_id,data_pagamento,sede_id,observacao,
+          km_por_litro,valor_combustivel,km_inicial,km_final,total_percorrido,despesa_combustivel,salario_funcionarios,
+          diarias_motoristas,diarias_ajudantes,descarrego,avarias,alimentacao,ajudante_extra,manutencao_veiculo,outros,
+          total_despesas,lucro_carga,lucro_final,resumo_carga,detalhes_carga,criado_em,atualizado_em,excluido_em,excluido_por
+        )
+        select l.numero_lancamento,dc.numero_carga,l.data_lancamento,l.hora_lancamento,l.colaborador_id,l.data_pagamento,l.sede_id,l.observacao,
+          dc.km_por_litro,dc.valor_combustivel,dc.km_inicial,dc.km_final,dc.total_percorrido,dc.despesa_combustivel,dc.salario_funcionarios,
+          dc.diarias_motoristas,dc.diarias_ajudantes,dc.descarrego,dc.avarias,dc.alimentacao,dc.ajudante_extra,dc.manutencao_veiculo,dc.outros,
+          dc.total_despesas,dc.lucro_carga,dc.lucro_final,dc.resumo_carga,dc.detalhes_carga,l.criado_em,
+          greatest(l.atualizado_em,dc.atualizado_em),l.excluido_em,l.excluido_por
+        from despesas_cargas dc join lancamentos l on l.numero_lancamento=dc.numero_lancamento
+        on conflict (numero_lancamento_origem) do nothing
+      `);
+      await client.query(`
+        insert into auditoria_lancamentos_cargas (numero_lancamento_carga,acao,usuario_id,usuario_nome,dados_anteriores,dados_novos,alteracoes,ocorrido_em)
+        select lc.numero_lancamento_carga,a.acao,a.usuario_id,a.usuario_nome,a.dados_anteriores,a.dados_novos,a.alteracoes,a.ocorrido_em
+        from auditoria_lancamentos a
+        join lancamentos_cargas lc on lc.numero_lancamento_origem=a.numero_lancamento
+      `);
+      await client.query(`insert into migracoes (versao) values ('016_separar_lancamentos_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

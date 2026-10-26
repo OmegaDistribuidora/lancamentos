@@ -38,8 +38,8 @@ function MoneyField({ label, value, onChange }) {
 
 export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLancamento, onBack, onSaved }) {
   const today = todayFortaleza()
-  const launch = initial?.lancamento
-  const expense = initial?.despesaCarga
+  const launch = initial?.lancamento || initial
+  const expense = initial?.despesaCarga || initial
   const initialSede = launch?.sedeId || catalogs.sedes[0]?.id || ''
   const [form, setForm] = useState({
     dataPagamento: launch?.dataPagamento || today,
@@ -78,7 +78,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
         ...form, kmPorLitro, kmInicial: decimalValue(form.kmInicial), kmFinal: decimalValue(form.kmFinal),
         valorCombustivel, ...Object.fromEntries(ADDITIONAL.map(([key]) => [key, moneyInputToNumber(money[key])])),
       }
-      const result = await api(numeroLancamento ? `/api/lancamentos/${numeroLancamento}/carga` : `/api/lancamentos/carga/${cargo.numeroCarga}`, {
+      const result = await api(numeroLancamento ? `/api/lancamentos-cargas/${numeroLancamento}` : `/api/lancamentos-cargas/carga/${cargo.numeroCarga}`, {
         method: numeroLancamento ? 'PUT' : 'POST', body: JSON.stringify(body),
       })
       onSaved(result, Boolean(numeroLancamento))

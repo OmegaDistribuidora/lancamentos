@@ -41,7 +41,7 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     if (!isAdmin(request.authUser!)) forbidden();
     const { rows } = await pool.query(`
       select u.id,u.nome_exibicao as "nomeExibicao",u.login,u.perfil,u.ativo,
-        u.acesso_despesa_carga as "acessoDespesaCarga",
+        u.acesso_lancamento_normal as "acessoLancamentoNormal",u.acesso_despesa_carga as "acessoDespesaCarga",
         coalesce(array_agg(distinct us.sede_id) filter(where us.sede_id is not null),'{}') as "sedeIds",
         coalesce(array_agg(distinct uc.centro_custo_id) filter(where uc.centro_custo_id is not null),'{}') as "centroCustoIds"
       from usuarios u left join usuario_sedes us on us.usuario_id=u.id
@@ -56,6 +56,7 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     const nome = text(body.nomeExibicao, 'Nome de exibição', 120);
     const login = loginValue(body.login);
     const perfil = profileValue(body.perfil || 'USUARIO');
+    const acessoLancamentoNormal = body.acessoLancamentoNormal !== false;
     const acessoDespesaCarga = body.acessoDespesaCarga === true;
     const senha = typeof body.senha === 'string' ? body.senha : '';
     if (senha && senha.length < 8) badRequest('A senha local deve ter pelo menos 8 caracteres.');
@@ -66,10 +67,10 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     const client = await pool.connect();
     try {
       await client.query('begin');
-      const inserted = await client.query(`insert into usuarios(nome_exibicao,login,senha_hash,perfil,acesso_despesa_carga) values($1,$2,$3,$4,$5) returning id`, [nome, login, senha ? hashPassword(senha) : null, perfil, acessoDespesaCarga]);
+      const inserted = await client.query(`insert into usuarios(nome_exibicao,login,senha_hash,perfil,acesso_lancamento_normal,acesso_despesa_carga) values($1,$2,$3,$4,$5,$6) returning id`, [nome, login, senha ? hashPassword(senha) : null, perfil, acessoLancamentoNormal, acessoDespesaCarga]);
       const id = inserted.rows[0].id as number;
       await saveAccess(client, id, sedes, centros);
-      await client.query('commit'); reply.status(201); return { id, nomeExibicao: nome, login, perfil, acessoDespesaCarga, ativo: true };
+      await client.query('commit'); reply.status(201); return { id, nomeExibicao: nome, login, perfil, acessoLancamentoNormal, acessoDespesaCarga, ativo: true };
     } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
   });
 
@@ -80,6 +81,7 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     const nome = text(body.nomeExibicao, 'Nome de exibição', 120);
     const login = loginValue(body.login);
     const perfil = profileValue(body.perfil);
+    const acessoLancamentoNormal = body.acessoLancamentoNormal === true;
     const acessoDespesaCarga = body.acessoDespesaCarga === true;
     const senha = typeof body.senha === 'string' ? body.senha : '';
     if (senha && senha.length < 8) badRequest('A senha local deve ter pelo menos 8 caracteres.');
@@ -92,10 +94,10 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     const client = await pool.connect();
     try {
       await client.query('begin');
-      const result = await client.query(`update usuarios set nome_exibicao=$1,login=$2,perfil=$3,ativo=$4,senha_hash=case when $5='' then senha_hash else $6 end,acesso_despesa_carga=$7,atualizado_em=now() where id=$8`, [nome, login, perfil, ativo, senha, senha ? hashPassword(senha) : null, acessoDespesaCarga, id]);
+      const result = await client.query(`update usuarios set nome_exibicao=$1,login=$2,perfil=$3,ativo=$4,senha_hash=case when $5='' then senha_hash else $6 end,acesso_lancamento_normal=$7,acesso_despesa_carga=$8,atualizado_em=now() where id=$9`, [nome, login, perfil, ativo, senha, senha ? hashPassword(senha) : null, acessoLancamentoNormal, acessoDespesaCarga, id]);
       if (!result.rowCount) badRequest('Usuário não encontrado.');
       await saveAccess(client, id, sedes, centros);
-      await client.query('commit'); return { id, nomeExibicao: nome, login, perfil, acessoDespesaCarga, ativo };
+      await client.query('commit'); return { id, nomeExibicao: nome, login, perfil, acessoLancamentoNormal, acessoDespesaCarga, ativo };
     } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
   });
 }

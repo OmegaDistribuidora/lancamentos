@@ -5,14 +5,14 @@ import { dateTime } from './format.js'
 import { Empty, Loading, Modal } from './components.jsx'
 
 const ACTIONS = { INSERCAO: 'Inserção', EDICAO: 'Edição', EXCLUSAO: 'Exclusão', ATIVACAO: 'Ativação', INATIVACAO: 'Inativação' }
-const FIELDS = { dataPagamento: 'Data de pagamento', sedeId: 'Sede', centroCustoId: 'Centro de custo', grupoContaId: 'Grupo de contas', contaId: 'Conta', observacao: 'Observação', valor: 'Valor', nome: 'Nome', sede: 'Sede' }
+const FIELDS = { dataPagamento: 'Data de pagamento', sedeId: 'Sede', centroCustoId: 'Centro de custo', grupoContaId: 'Grupo de contas', contaId: 'Conta', observacao: 'Observação', valor: 'Valor', nome: 'Nome', sede: 'Sede', kmPorLitro: 'Km/L', valorCombustivel: 'Valor do combustível', kmInicial: 'Km inicial', kmFinal: 'Km final', totalPercorrido: 'Total percorrido', despesaCombustivel: 'Despesa com combustível', totalDespesas: 'Total das despesas', lucroFinal: 'Lucro final' }
 const display = (value) => value === null || value === undefined || value === '' ? '—' : String(value)
 const isCostCenter = (item) => item.entidadeTipo === 'CENTRO_CUSTO'
 const isCatalog = (item) => item.entidadeTipo === 'GRUPO_CONTA' || item.entidadeTipo === 'CONTA'
 const snapshot = (item) => item.dadosNovos || item.dadosAnteriores || {}
 const entityTitle = (item) => isCatalog(item)
   ? `${item.entidadeTipo === 'GRUPO_CONTA' ? 'Grupo' : 'Conta'} ${item.codigo} — ${snapshot(item).nome || ''}`
-  : isCostCenter(item) ? `Centro de custo — ${snapshot(item).nome || `#${item.centroCustoId}`}` : `Lançamento #${item.numeroLancamento}`
+  : isCostCenter(item) ? `Centro de custo — ${snapshot(item).nome || `#${item.centroCustoId}`}` : item.entidadeTipo === 'LANCAMENTO_CARGA' ? `Lançamento de carga #${item.numeroLancamento}` : `Lançamento #${item.numeroLancamento}`
 const description = (item) => {
   if (item.acao === 'ATIVACAO') return 'Cadastro liberado para novos lançamentos e orçamentos'
   if (item.acao === 'INATIVACAO') return 'Cadastro bloqueado para novos lançamentos e orçamentos'

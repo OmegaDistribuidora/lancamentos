@@ -6,7 +6,7 @@ import { pool } from './db/pool.js';
 import { HttpError, badRequest } from './http.js';
 import type { AuthUser, Perfil } from './types.js';
 
-type UserRow = { id: number; login: string; nomeExibicao: string; perfil: Perfil; senhaHash: string | null; acessoDespesaCarga: boolean };
+type UserRow = { id: number; login: string; nomeExibicao: string; perfil: Perfil; senhaHash: string | null; acessoLancamentoNormal: boolean; acessoDespesaCarga: boolean };
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString('hex');
@@ -25,7 +25,7 @@ function verifyPassword(password: string, stored: string | null): boolean {
 async function findUser(login: string): Promise<UserRow | null> {
   const { rows } = await pool.query<UserRow>(
     `select id, login, nome_exibicao as "nomeExibicao", perfil, senha_hash as "senhaHash",
-       acesso_despesa_carga as "acessoDespesaCarga"
+       acesso_lancamento_normal as "acessoLancamentoNormal", acesso_despesa_carga as "acessoDespesaCarga"
      from usuarios where lower(login) = lower($1) and ativo = true limit 1`,
     [login],
   );
@@ -33,7 +33,7 @@ async function findUser(login: string): Promise<UserRow | null> {
 }
 
 function asAuthUser(row: UserRow): AuthUser {
-  return { id: row.id, login: row.login, nomeExibicao: row.nomeExibicao, perfil: row.perfil, acessoDespesaCarga: row.acessoDespesaCarga };
+  return { id: row.id, login: row.login, nomeExibicao: row.nomeExibicao, perfil: row.perfil, acessoLancamentoNormal: row.acessoLancamentoNormal, acessoDespesaCarga: row.acessoDespesaCarga };
 }
 
 function sign(user: AuthUser): string {
@@ -51,7 +51,11 @@ export function isAdmin(user: AuthUser): boolean {
 }
 
 export function canAccessCargoExpenses(user: AuthUser): boolean {
-  return user.perfil === 'ADMIN' || user.acessoDespesaCarga;
+  return isPrivileged(user) || user.acessoDespesaCarga;
+}
+
+export function canAccessNormalLaunches(user: AuthUser): boolean {
+  return isPrivileged(user) || user.acessoLancamentoNormal;
 }
 
 async function profile(user: AuthUser) {
@@ -63,6 +67,7 @@ async function profile(user: AuthUser) {
     ...user,
     podeVerTodos: isPrivileged(user),
     podeAdministrar: isAdmin(user),
+    podeLancamentosNormais: canAccessNormalLaunches(user),
     podeConsultarCargas: canAccessCargoExpenses(user),
     sedes: sedes.rows,
     centrosCusto: centros.rows,

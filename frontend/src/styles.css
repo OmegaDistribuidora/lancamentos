@@ -105,6 +105,10 @@ label small { font-weight:400; color:var(--muted); }
 .dashboard-sede-select,.budget-filters label { min-width:190px; gap:5px; color:#647188; font-size:10px; font-weight:700; }
 .dashboard-sede-select select,.budget-filters select,.budget-filters input { height:39px; background:#fff; }
 .cost-centers-by-site { display:grid; gap:16px; width:100%; }
+.module-access-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.module-access-grid .check { padding:13px; border:1px solid #dfe6ef; border-radius:10px; background:#f8fafc; }
+.module-access-grid .check span { display:flex; flex-direction:column; gap:3px; }
+.module-access-grid .check small { color:#7a8799; font-weight:400; }
 .cost-center-site { display:grid; gap:8px; padding:12px; border:1px solid #e4eaf2; border-radius:10px; background:#f8fafc; }
 .cost-center-site > strong { color:#334155; font-size:12px; }
 .fieldset-hint { margin:4px 0; color:#718096; font-size:12px; }

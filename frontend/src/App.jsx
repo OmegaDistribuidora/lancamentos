@@ -7,6 +7,7 @@ import { Loading, Toast } from './components.jsx'
 
 const DashboardPage = lazy(() => import('./DashboardPage.jsx'))
 const LancamentosPage = lazy(() => import('./LancamentosPage.jsx'))
+const LancamentosCargasPage = lazy(() => import('./LancamentosCargasPage.jsx'))
 const LancamentoModal = lazy(() => import('./LancamentoModal.jsx'))
 const AuditoriaPage = lazy(() => import('./AuditoriaPage.jsx'))
 const UsuariosPage = lazy(() => import('./UsuariosPage.jsx'))
@@ -28,6 +29,7 @@ export default function App() {
   const notify = useCallback((message, type = 'success') => setToast({ message, type, id: Date.now() }), [])
   const closeToast = useCallback(() => setToast(null), [])
   const loadCatalogs = useCallback(async () => setCatalogs(await api('/api/catalogos')), [])
+  const firstView = (nextUser) => nextUser.podeLancamentosNormais ? 'dashboard' : nextUser.podeConsultarCargas ? 'lancamentos-cargas' : nextUser.podeAdministrar ? 'usuarios' : 'lancamentos'
 
   useEffect(() => {
     async function boot() {
@@ -36,25 +38,25 @@ export default function App() {
         const ssoToken = hash.get('sso') || new URLSearchParams(window.location.search).get('sso')
         if (ssoToken) {
           const data = await api('/api/auth/sso/exchange', { method: 'POST', body: JSON.stringify({ token: ssoToken }) })
-          setToken(data.token); setUser(data.usuario); window.history.replaceState(null, '', window.location.pathname)
+          setToken(data.token); setUser(data.usuario); setView(firstView(data.usuario)); window.history.replaceState(null, '', window.location.pathname)
           await loadCatalogs(); return
         }
-        if (getToken()) { setUser(await api('/api/auth/me')); await loadCatalogs() }
+        if (getToken()) { const currentUser = await api('/api/auth/me'); setUser(currentUser); setView(firstView(currentUser)); await loadCatalogs() }
       } catch { setToken(''); setUser(null) } finally { setBooting(false) }
     }
     void boot()
   }, [loadCatalogs])
 
   async function loggedIn(nextUser) {
-    setUser(nextUser)
+    setUser(nextUser); setView(firstView(nextUser))
     try { await loadCatalogs() } catch (err) { notify(err.message, 'error') }
   }
   function logout() { setToken(''); setUser(null); setView('dashboard'); setCatalogs({ sedes: [], centrosCusto: [], gruposContas: [], contas: [] }) }
   function navigate(next) { setView(next); void loadCatalogs().catch(() => undefined) }
   function newEntry() {
-    if (user.podeConsultarCargas) return setNewFlow('choice')
     openNormalEntry()
   }
+  function newCargoEntry() { setNewFlow('carga') }
   function openNormalEntry() {
     if (!catalogs.sedes.length || !catalogs.centrosCusto.length) return notify('Seu usuário precisa ter sede e centro de custo liberados.', 'error')
     setNewFlow(undefined)
@@ -62,15 +64,16 @@ export default function App() {
   }
   function saved(_item, edited) { setModal(undefined); setRefreshKey((key) => key + 1); notify(edited ? 'Lançamento atualizado. O de-para foi auditado.' : 'Lançamento criado com sucesso.') }
   function cargoSaved(_item, edited) { setNewFlow(undefined); setCargoModal(undefined); setRefreshKey((key) => key + 1); notify(edited ? 'Despesa da carga atualizada e auditada.' : 'Despesa da carga criada com sucesso.') }
-  function editEntry(item) { item.despesaCarga ? setCargoModal(item) : setModal(item) }
+  function editEntry(item) { setModal(item) }
 
   if (booting) return <div className="boot"><div className="brand-mark large"><BarChart3/></div><span>Preparando o Lançamentos...</span></div>
   if (!user) return <LoginPage onLogin={loggedIn}/>
   return <>
-    <Layout user={user} view={view} onView={navigate} onLogout={logout} onNew={newEntry}>
+    <Layout user={user} view={view} onView={navigate} onLogout={logout} onNew={newEntry} onNewCargo={newCargoEntry}>
       <Suspense fallback={<Loading label="Carregando página..."/>}>
-        {view === 'dashboard' && <DashboardPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onSeeAll={() => navigate('lancamentos')}/>}
-        {view === 'lancamentos' && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={editEntry} notify={notify}/>}
+        {view === 'dashboard' && user.podeLancamentosNormais && <DashboardPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onSeeAll={() => navigate('lancamentos')}/>}
+        {view === 'lancamentos' && user.podeLancamentosNormais && <LancamentosPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newEntry} onEdit={editEntry} notify={notify}/>}
+        {view === 'lancamentos-cargas' && user.podeConsultarCargas && <LancamentosCargasPage user={user} catalogs={catalogs} refreshKey={refreshKey} onNew={newCargoEntry} onEdit={setCargoModal} notify={notify}/>}
         {view === 'orcamentos' && user.podeVerTodos && <CadastrosPage notify={notify} onChanged={() => setRefreshKey((key) => key + 1)}/>}
         {view === 'auditoria' && user.podeVerTodos && <AuditoriaPage notify={notify}/>}
         {view === 'centros-custo' && user.podeVerTodos && <CentrosCustoPage user={user} notify={notify} onChanged={loadCatalogs}/>}
@@ -78,7 +81,7 @@ export default function App() {
       </Suspense>
     </Layout>
     {modal !== undefined && <Suspense fallback={null}><LancamentoModal item={modal} catalogs={catalogs} onClose={() => setModal(undefined)} onSaved={saved}/></Suspense>}
-    {newFlow !== undefined && <Suspense fallback={null}><NovoLancamentoFlow mode={newFlow} onMode={setNewFlow} onClose={() => setNewFlow(undefined)} onNormal={openNormalEntry} catalogs={catalogs} onSaved={cargoSaved}/></Suspense>}
+    {newFlow !== undefined && <Suspense fallback={null}><NovoLancamentoFlow mode="carga" onClose={() => setNewFlow(undefined)} catalogs={catalogs} onSaved={cargoSaved}/></Suspense>}
     {cargoModal !== undefined && <Suspense fallback={null}><CargoExpenseModal item={cargoModal} catalogs={catalogs} onClose={() => setCargoModal(undefined)} onSaved={cargoSaved}/></Suspense>}
     <Toast toast={toast} onClose={closeToast}/>
   </>

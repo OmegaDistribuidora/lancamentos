@@ -84,10 +84,10 @@ export async function registerCargoRoutes(app: FastifyInstance): Promise<void> {
     if (!canAccessCargoExpenses(request.authUser!)) forbidden('Seu perfil nao possui acesso a consulta de cargas.');
     const numero = positiveId((request.params as { numero: string }).numero, 'Numero da carga');
     const existing = await pool.query(`
-      select l.numero_lancamento from despesas_cargas dc join lancamentos l on l.numero_lancamento=dc.numero_lancamento
-      where dc.numero_carga=$1 and l.excluido_em is null limit 1
+      select numero_lancamento_carga from lancamentos_cargas
+      where numero_carga=$1 and excluido_em is null limit 1
     `, [numero]);
-    if (existing.rowCount) throw new HttpError(409, `A carga ${numero} já possui despesa lançada no lançamento #${existing.rows[0].numero_lancamento}.`);
+    if (existing.rowCount) throw new HttpError(409, `A carga ${numero} já possui o lançamento de carga #${existing.rows[0].numero_lancamento_carga}.`);
     return fetchCarga(numero);
   });
 

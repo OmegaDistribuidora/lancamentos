@@ -9,11 +9,11 @@ export default function CargoExpenseModal({ item, catalogs, onClose, onSaved }) 
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   useEffect(() => {
-    api(`/api/lancamentos/${item.numeroLancamento}/carga`).then(setData).catch((err) => setError(err.message))
-  }, [item.numeroLancamento])
-  const cargo = data?.despesaCarga?.resumoCarga
-  const details = data?.despesaCarga?.detalhesCarga
-  return <Modal title={`Despesa de carga · Lançamento #${item.numeroLancamento}`} subtitle="Consulte o retrato salvo da carga e edite os custos informados." onClose={onClose} wide>
+    api(`/api/lancamentos-cargas/${item.numeroLancamentoCarga}`).then(setData).catch((err) => setError(err.message))
+  }, [item.numeroLancamentoCarga])
+  const cargo = data?.resumoCarga
+  const details = data?.detalhesCarga
+  return <Modal title={`Lançamento de carga #${item.numeroLancamentoCarga}`} subtitle="Consulte o retrato salvo da carga e edite os custos informados." onClose={onClose} wide>
     {!data && !error && <Loading label="Carregando despesa da carga..."/>}
     {error && <div className="modal-body"><div className="form-error">{error}</div></div>}
     {data && <>
@@ -24,7 +24,7 @@ export default function CargoExpenseModal({ item, catalogs, onClose, onSaved }) 
           <div className="cargo-items-table snapshot-items"><table><thead><tr><th>Pedido</th><th>Produto</th><th>Fornecedor</th><th className="align-right">Quantidade</th><th className="align-right">Venda</th><th className="align-right">Custo</th><th className="align-right">Lucro</th></tr></thead><tbody>{details.itens.map((product) => <tr key={`${product.numeroPedido}-${product.sequencia}`}><td>#{product.numeroPedido}</td><td><strong>{product.codigoProduto}{product.bonificacao && <span className="bonus-badge">BNF</span>}</strong><span className="cargo-product-name">{product.descricao}</span></td><td>{product.fornecedor?.nome || '—'}</td><td className="align-right">{number(product.quantidade)}</td><td className="align-right amount">{currency(product.valorTotal)}</td><td className="align-right amount">{currency(product.custoTotal)}</td><td className={`align-right amount ${product.lucroTotal < 0 ? 'negative' : 'profit'}`}>{currency(product.lucroTotal)}</td></tr>)}</tbody></table></div>
         </details>
       </div>
-      <CargoExpenseForm cargo={cargo} catalogs={catalogs} initial={data} numeroLancamento={item.numeroLancamento} onBack={onClose} onSaved={onSaved}/>
+      <CargoExpenseForm cargo={cargo} catalogs={catalogs} initial={data} numeroLancamento={item.numeroLancamentoCarga} onBack={onClose} onSaved={onSaved}/>
     </>}
   </Modal>
 }

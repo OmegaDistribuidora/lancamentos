@@ -12,6 +12,7 @@ import { registerCostCenterRoutes } from './routes/centros-custo.js';
 import { registerCatalogSyncRoutes } from './routes/catalogos-sync.js';
 import { registerCatalogConfigurationRoutes } from './routes/configuracoes-catalogos.js';
 import { registerCargoRoutes } from './routes/cargas.js';
+import { registerCargoLaunchRoutes } from './routes/lancamentos-cargas.js';
 
 export async function createApp() {
   const app = Fastify({ logger: true, trustProxy: true });
@@ -25,6 +26,7 @@ export async function createApp() {
   await registerAuthRoutes(app);
   await registerCatalogRoutes(app);
   await registerLancamentoRoutes(app);
+  await registerCargoLaunchRoutes(app);
   await registerDashboardRoutes(app);
   await registerAuditRoutes(app);
   await registerUserRoutes(app);

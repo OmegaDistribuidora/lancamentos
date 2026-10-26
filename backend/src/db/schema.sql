@@ -54,6 +54,7 @@ create table if not exists usuarios (
   senha_hash text,
   perfil varchar(40) not null default 'USUARIO'
     check (perfil in ('ADMIN', 'GERENTE_ADMINISTRATIVO', 'DIRETORIA', 'LOGISTICA', 'USUARIO')),
+  acesso_lancamento_normal boolean not null default true,
   acesso_despesa_carga boolean not null default false,
   ativo boolean not null default true,
   criado_em timestamptz not null default now(),
@@ -139,6 +140,64 @@ create table if not exists despesas_cargas (
 );
 
 create index if not exists idx_despesas_cargas_numero on despesas_cargas(numero_carga);
+
+create table if not exists lancamentos_cargas (
+  numero_lancamento_carga bigserial primary key,
+  numero_lancamento_origem bigint unique,
+  numero_carga bigint not null,
+  data_lancamento date not null default ((now() at time zone 'America/Fortaleza')::date),
+  hora_lancamento time(0) not null default ((now() at time zone 'America/Fortaleza')::time(0)),
+  colaborador_id bigint not null references usuarios(id),
+  data_pagamento date not null,
+  sede_id bigint not null references sedes(id),
+  observacao text not null default '',
+  km_por_litro numeric(12,3) not null check (km_por_litro > 0),
+  valor_combustivel numeric(14,2) not null check (valor_combustivel >= 0),
+  km_inicial numeric(14,2) not null check (km_inicial >= 0),
+  km_final numeric(14,2) not null check (km_final >= km_inicial),
+  total_percorrido numeric(14,2) not null check (total_percorrido >= 0),
+  despesa_combustivel numeric(14,2) not null check (despesa_combustivel >= 0),
+  salario_funcionarios numeric(14,2) not null default 0 check (salario_funcionarios >= 0),
+  diarias_motoristas numeric(14,2) not null default 0 check (diarias_motoristas >= 0),
+  diarias_ajudantes numeric(14,2) not null default 0 check (diarias_ajudantes >= 0),
+  descarrego numeric(14,2) not null default 0 check (descarrego >= 0),
+  avarias numeric(14,2) not null default 0 check (avarias >= 0),
+  alimentacao numeric(14,2) not null default 0 check (alimentacao >= 0),
+  ajudante_extra numeric(14,2) not null default 0 check (ajudante_extra >= 0),
+  manutencao_veiculo numeric(14,2) not null default 0 check (manutencao_veiculo >= 0),
+  outros numeric(14,2) not null default 0 check (outros >= 0),
+  total_despesas numeric(14,2) not null check (total_despesas > 0),
+  lucro_carga numeric(14,2) not null,
+  lucro_final numeric(14,2) not null,
+  resumo_carga jsonb not null,
+  detalhes_carga jsonb not null,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  excluido_em timestamptz,
+  excluido_por bigint references usuarios(id)
+);
+
+create unique index if not exists uq_lancamentos_cargas_numero_ativo
+  on lancamentos_cargas(numero_carga) where excluido_em is null;
+create index if not exists idx_lancamentos_cargas_colaborador
+  on lancamentos_cargas(colaborador_id, criado_em desc);
+create index if not exists idx_lancamentos_cargas_pagamento
+  on lancamentos_cargas(data_pagamento desc) where excluido_em is null;
+
+create table if not exists auditoria_lancamentos_cargas (
+  id bigserial primary key,
+  numero_lancamento_carga bigint not null,
+  acao varchar(20) not null check (acao in ('INSERCAO', 'EDICAO', 'EXCLUSAO')),
+  usuario_id bigint not null references usuarios(id),
+  usuario_nome varchar(120) not null,
+  dados_anteriores jsonb,
+  dados_novos jsonb,
+  alteracoes jsonb,
+  ocorrido_em timestamptz not null default now()
+);
+
+create index if not exists idx_auditoria_lancamentos_cargas
+  on auditoria_lancamentos_cargas(numero_lancamento_carga, ocorrido_em desc);
 
 create table if not exists auditoria_lancamentos (
   id bigserial primary key,

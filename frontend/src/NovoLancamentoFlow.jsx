@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Box, CalendarDays, Eye, MapPin, PackageSearch, ReceiptText, Search, Truck, UserRound, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Box, CalendarDays, Eye, MapPin, PackageSearch, Search, UserRound, X } from 'lucide-react'
 import { api } from './api.js'
 import CargoExpenseForm from './CargoExpenseForm.jsx'
 import { currency, number } from './format.js'
@@ -21,21 +21,6 @@ function Detail({ label, value }) {
 
 function Section({ icon: Icon, title, action, children }) {
   return <section className="cargo-section"><header><Icon size={18}/><h3>{title}</h3>{action}</header><div className="cargo-detail-grid">{children}</div></section>
-}
-
-function Choice({ onClose, onNormal, onCargo }) {
-  return <Modal title="Novo lançamento" subtitle="Escolha o tipo de despesa que deseja consultar ou lançar." onClose={onClose}>
-    <div className="modal-body launch-type-grid">
-      <button type="button" className="launch-type-card" onClick={onNormal}>
-        <span className="launch-type-icon normal"><ReceiptText/></span>
-        <span><strong>Despesa normal</strong><small>Preencha sede, centro de custo, conta e valor.</small></span>
-      </button>
-      <button type="button" className="launch-type-card" onClick={onCargo}>
-        <span className="launch-type-icon cargo"><Truck/></span>
-        <span><strong>Despesa de carga</strong><small>Consulte uma carga diretamente no WinThor.</small></span>
-      </button>
-    </div>
-  </Modal>
 }
 
 function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
@@ -136,8 +121,6 @@ function CargoLookup({ onClose, onBack, catalogs, onSaved }) {
   </Modal>
 }
 
-export default function NovoLancamentoFlow({ mode, onClose, onMode, onNormal, catalogs, onSaved }) {
-  return mode === 'carga'
-    ? <CargoLookup onClose={onClose} onBack={() => onMode('choice')} catalogs={catalogs} onSaved={onSaved}/>
-    : <Choice onClose={onClose} onNormal={onNormal} onCargo={() => onMode('carga')}/>
+export default function NovoLancamentoFlow({ onClose, catalogs, onSaved }) {
+  return <CargoLookup onClose={onClose} onBack={onClose} catalogs={catalogs} onSaved={onSaved}/>
 }
