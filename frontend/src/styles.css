@@ -351,6 +351,7 @@ fieldset legend { width:100%; display:flex; align-items:center; justify-content:
 .cargo-trip-sheet-total { padding:11px 15px; background:#f8f5ff; border-color:#e4dcfa; }
 .cargo-trip-sheet-total strong { color:#6246a8; font-size:18px; }
 .cargo-trip-sheet-total small { color:#7c7194; font-size:9px; }
+.readonly-notice { padding:10px 12px; color:#52657e; background:#eef5ff; border:1px solid #d7e6fa; border-radius:9px; font-size:11px; }
 .open-loads-panel { margin-top:16px; overflow:hidden; border:1px solid #dfe7f1; border-radius:13px; background:#fbfcfe; }
 .open-loads-panel>header { padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:14px; border-bottom:1px solid #e5ebf2; background:#f5f9ff; }
 .open-loads-title { min-width:0; display:flex; align-items:center; gap:10px; color:#176fe5; }

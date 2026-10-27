@@ -83,12 +83,18 @@ async function validarAcessoSede(client: PoolClient, user: AuthUser, payload: Re
   return { dataPagamento, sedeId, observacao: optionalText(payload.observacao) };
 }
 
-async function obter(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool) {
+async function obter(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool, acesso: 'visualizar' | 'gerenciar' = 'gerenciar') {
   const params: unknown[] = [numero];
-  const ownership = isPrivileged(user) ? '' : 'and base."colaboradorId"=$2';
+  const ownership = isPrivileged(user) ? '' : acesso === 'visualizar'
+    ? 'and exists(select 1 from usuario_sedes us where us.usuario_id=$2 and us.sede_id=base."sedeId")'
+    : 'and base."colaboradorId"=$2';
   if (!isPrivileged(user)) params.push(user.id);
   const { rows } = await client.query(`${SELECT_DETALHE} where lc.excluido_em is null and base."numeroLancamentoCarga"=$1 ${ownership}`, params);
   return rows[0] as Record<string, unknown> | undefined;
+}
+
+function podeGerenciar(user: AuthUser, item: Record<string, unknown>): boolean {
+  return isPrivileged(user) || Number(item.colaboradorId) === user.id;
 }
 
 function alteracoes(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -115,7 +121,7 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     const limit = Math.min(5000, Math.max(1, Number(q.limit || 15)));
     const where = ['lc.excluido_em is null'];
     const params: unknown[] = [];
-    if (!isPrivileged(user)) { params.push(user.id); where.push(`lc.colaborador_id=$${params.length}`); }
+    if (!isPrivileged(user)) { params.push(user.id); where.push(`exists(select 1 from usuario_sedes us where us.usuario_id=$${params.length} and us.sede_id=lc.sede_id)`); }
     if (q.inicio) { params.push(dateOnly(q.inicio, 'Data inicial')); where.push(`lc.data_pagamento >= $${params.length}`); }
     if (q.fim) { params.push(dateOnly(q.fim, 'Data final')); where.push(`lc.data_pagamento <= $${params.length}`); }
     if (q.sedeId) { params.push(positiveId(q.sedeId, 'Sede')); where.push(`lc.sede_id=$${params.length}`); }
@@ -126,7 +132,7 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     params.push(limit,(page-1)*limit);
     const rows = await pool.query(`${SELECT_LISTA} where ${clause} order by lc.criado_em desc limit $${params.length-1} offset $${params.length}`, params);
     const resumo = summary.rows[0] || { total: 0, valorTotal: 0, valorVendaTotal: 0, valorMedio: 0, lucroFinal: 0 };
-    return { content: rows.rows, page, limit, total: resumo.total || 0, resumo };
+    return { content: rows.rows.map((item) => ({ ...item, podeEditar: podeGerenciar(user,item) })), page, limit, total: resumo.total || 0, resumo };
   });
 
   app.get('/api/lancamentos-cargas/exportacao', async (request) => {
@@ -134,7 +140,7 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     const q = request.query as Record<string, string | undefined>;
     const where = ['lc.excluido_em is null'];
     const params: unknown[] = [];
-    if (!isPrivileged(user)) { params.push(user.id); where.push(`base."colaboradorId"=$${params.length}`); }
+    if (!isPrivileged(user)) { params.push(user.id); where.push(`exists(select 1 from usuario_sedes us where us.usuario_id=$${params.length} and us.sede_id=base."sedeId")`); }
     if (q.inicio) { params.push(dateOnly(q.inicio, 'Data inicial')); where.push(`base."dataPagamento"::date >= $${params.length}`); }
     if (q.fim) { params.push(dateOnly(q.fim, 'Data final')); where.push(`base."dataPagamento"::date <= $${params.length}`); }
     if (q.sedeId) { params.push(positiveId(q.sedeId, 'Sede')); where.push(`base."sedeId"=$${params.length}`); }
@@ -150,7 +156,9 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
   app.get('/api/lancamentos-cargas/:numero', async (request) => {
     const user = request.authUser!; exigirAcesso(user);
     const numero = positiveId((request.params as { numero: string }).numero, 'Lançamento de carga');
-    return await obter(numero,user) || notFound('Lançamento de carga não encontrado.');
+    const item = await obter(numero,user,pool,'visualizar');
+    if (!item) return notFound('Lançamento de carga não encontrado ou fora das suas sedes liberadas.');
+    return { ...item, podeEditar: podeGerenciar(user,item) };
   });
 
   app.post('/api/lancamentos-cargas/carga/:numeroCarga', async (request, reply) => {
@@ -173,7 +181,14 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
       const created = await obter(numero,user,client);
       await auditar(client,user,numero,'INSERCAO',null,created);
       await client.query('commit'); reply.status(201); return created;
-    } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
+    } catch (error) {
+      await client.query('rollback');
+      if ((error as { code?: string }).code === '23505') {
+        const existing = await pool.query(`select numero_lancamento_carga from lancamentos_cargas where numero_carga=$1 and excluido_em is null limit 1`, [numeroCarga]);
+        if (existing.rowCount) badRequest(`A carga ${numeroCarga} já possui o lançamento de carga #${existing.rows[0].numero_lancamento_carga}.`);
+      }
+      throw error;
+    } finally { client.release(); }
   });
 
   app.put('/api/lancamentos-cargas/:numero', async (request) => {
