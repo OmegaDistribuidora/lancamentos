@@ -461,6 +461,11 @@ export async function migrate(): Promise<void> {
       await client.query(`alter table lancamentos_cargas add column if not exists data_chegada date`);
       await client.query(`insert into migracoes (versao) values ('017_data_chegada_lancamentos_cargas')`);
     }
+    const cargoDepartureDateMigration = await client.query(`select 1 from migracoes where versao='018_data_saida_lancamentos_cargas'`);
+    if (!cargoDepartureDateMigration.rowCount) {
+      await client.query(`alter table lancamentos_cargas add column if not exists data_saida date`);
+      await client.query(`insert into migracoes (versao) values ('018_data_saida_lancamentos_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

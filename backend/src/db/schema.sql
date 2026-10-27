@@ -149,6 +149,7 @@ create table if not exists lancamentos_cargas (
   hora_lancamento time(0) not null default ((now() at time zone 'America/Fortaleza')::time(0)),
   colaborador_id bigint not null references usuarios(id),
   data_pagamento date not null,
+  data_saida date,
   data_chegada date,
   sede_id bigint not null references sedes(id),
   observacao text not null default '',

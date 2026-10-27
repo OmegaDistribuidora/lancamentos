@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api } from './api.js'
-import { currency, todayFortaleza } from './format.js'
+import { currency } from './format.js'
 import { formatMoneyInput, moneyInputFromValue, moneyInputToNumber, sanitizeMoneyInput } from './moneyInput.js'
 
 const ADDITIONAL = [
@@ -45,13 +45,12 @@ function MoneyField({ label, value, onChange, disabled = false }) {
 }
 
 export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLancamento, onBack, onSaved, readOnly = false }) {
-  const today = todayFortaleza()
   const launch = initial?.lancamento || initial
   const expense = initial?.despesaCarga || initial
   const cargoSites = numeroLancamento ? catalogs.sedes : catalogs.sedes.filter((site) => CARGO_SITE_NAMES.has(site.nome))
   const initialSede = launch?.sedeId || cargoSites[0]?.id || ''
   const [form, setForm] = useState({
-    dataPagamento: launch?.dataPagamento || today,
+    dataSaida: launch?.dataSaida || '',
     dataChegada: launch?.dataChegada || '',
     sedeId: initialSede,
     kmPorLitro: expense?.kmPorLitro ?? '', kmInicial: expense?.kmInicial ?? '', kmFinal: expense?.kmFinal ?? '',
@@ -86,7 +85,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   async function submit(event) {
     event.preventDefault(); setError('')
     if (readOnly) return
-    if (form.dataPagamento > today) return setError('A data de pagamento não pode ser futura.')
+    if (form.dataChegada < form.dataSaida) return setError('A data de chegada não pode ser anterior à data de saída.')
     if (kmPorLitro <= 0) return setError('Informe um valor de Km/L maior que zero.')
     if (decimalValue(form.kmFinal) < decimalValue(form.kmInicial)) return setError('O Km final não pode ser menor que o Km inicial.')
     if (totalDespesas <= 0) return setError('O total das despesas deve ser maior que zero.')
@@ -107,7 +106,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
     <div className="modal-body form-grid">
       {readOnly && <div className="readonly-notice full">Consulta somente leitura. Apenas o colaborador que criou este lançamento ou um perfil administrativo pode alterá-lo.</div>}
       <div className="auto-info full cargo-expense-context"><div><span>Carga</span><strong>#{cargo?.numeroCarga || expense?.numeroCarga}</strong></div><div><span>Centro de custo</span><strong>Cargas</strong></div><div><span>Grupo / conta</span><strong>Despesas de Carga</strong></div><div><span>Lucro da carga</span><strong>{currency(lucroCarga)}</strong></div></div>
-      <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} disabled={readOnly} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
+      <label>Data de saída<input required type="date" value={form.dataSaida} disabled={readOnly} onChange={(event) => change('dataSaida', event.target.value)}/></label>
       <label>Sede<select required value={form.sedeId} disabled={readOnly} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{cargoSites.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
       <label>Data de chegada<input required type="date" value={form.dataChegada} disabled={readOnly} onChange={(event) => change('dataChegada', event.target.value)}/></label>
       <label>Km/L<input required type="text" inputMode="decimal" value={form.kmPorLitro} disabled={readOnly} onChange={(event) => change('kmPorLitro', event.target.value.replace(/[^0-9,.]/g, ''))} placeholder="Ex.: 8,5"/></label>
