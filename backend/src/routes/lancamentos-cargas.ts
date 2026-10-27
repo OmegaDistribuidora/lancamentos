@@ -94,7 +94,7 @@ async function obter(numero: number, user: AuthUser, client: PoolClient | typeof
 }
 
 function podeGerenciar(user: AuthUser, item: Record<string, unknown>): boolean {
-  return isPrivileged(user) || Number(item.colaboradorId) === user.id;
+  return isPrivileged(user) || Number(item.colaboradorId) === Number(user.id);
 }
 
 function alteracoes(before: Record<string, unknown>, after: Record<string, unknown>) {
