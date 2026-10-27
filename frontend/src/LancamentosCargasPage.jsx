@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Calculator, ChevronLeft, ChevronRight, Download, Eye, FileDown, Plus, ReceiptText, Search, Trash2, TrendingUp, Truck } from 'lucide-react'
+import { BadgeDollarSign, Calculator, ChevronLeft, ChevronRight, Download, Eye, FileDown, Plus, ReceiptText, Search, Trash2, TrendingUp, Truck } from 'lucide-react'
 import { api, qs } from './api.js'
 import { currency, number, periodOptions, periodRange, shortDate } from './format.js'
 import { Empty, FilterSelect, Loading } from './components.jsx'
@@ -57,7 +57,8 @@ export default function LancamentosCargasPage({ user, catalogs, refreshKey, onNe
     </section>
     <section className={`metrics-grid launch-metrics ${loading ? 'loading-metrics' : ''}`}>
       <Metric icon={ReceiptText} tone="blue" label="Total das despesas" value={currency(resumo.valorTotal)} detail="Conforme os filtros"/>
-      <Metric icon={Truck} tone="green" label="Quantidade de cargas" value={number(resumo.total)} detail="Lançamentos encontrados"/>
+      <Metric icon={BadgeDollarSign} tone="green" label="Venda total das cargas" value={currency(resumo.valorVendaTotal)} detail="Conforme os filtros"/>
+      <Metric icon={Truck} tone="teal" label="Quantidade de cargas" value={number(resumo.total)} detail="Lançamentos encontrados"/>
       <Metric icon={Calculator} tone="purple" label="Despesa média" value={currency(resumo.valorMedio)} detail="Média por carga"/>
       <Metric icon={TrendingUp} tone="orange" label="Lucro após despesas" value={currency(resumo.lucroFinal)} detail="Soma no período"/>
     </section>
