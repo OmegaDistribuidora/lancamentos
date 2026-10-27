@@ -21,7 +21,8 @@ const SELECT_LISTA = `
   select lc.numero_lancamento_carga as "numeroLancamentoCarga",lc.numero_carga as "numeroCarga",
     lc.data_lancamento::text as "dataLancamento",to_char(lc.hora_lancamento,'HH24:MI') as hora,
     lc.colaborador_id as "colaboradorId",u.nome_exibicao as colaborador,
-    lc.data_pagamento::text as "dataPagamento",lc.sede_id as "sedeId",s.nome as sede,
+    lc.data_pagamento::text as "dataPagamento",lc.data_chegada::text as "dataChegada",
+    lc.sede_id as "sedeId",s.nome as sede,
     lc.observacao,lc.total_despesas::float8 as "totalDespesas",lc.lucro_carga::float8 as "lucroCarga",
     lc.lucro_final::float8 as "lucroFinal",lc.resumo_carga#>>'{motorista,nome}' as motorista,
     lc.resumo_carga->>'destino' as destino,
@@ -80,7 +81,7 @@ async function validarAcessoSede(client: PoolClient, user: AuthUser, payload: Re
   const result = await client.query(`select s.id,exists(select 1 from usuario_sedes us where us.usuario_id=$1 and us.sede_id=s.id) as permitida from sedes s where s.id=$2 and s.ativo`, [user.id, sedeId]);
   if (!result.rowCount) badRequest('A sede selecionada não existe ou está inativa.');
   if (!isPrivileged(user) && !result.rows[0].permitida) badRequest('A sede não está liberada para este usuário.');
-  return { dataPagamento, sedeId, observacao: optionalText(payload.observacao) };
+  return { dataPagamento, dataChegada: dateOnly(payload.dataChegada, 'Data de chegada'), sedeId, observacao: optionalText(payload.observacao) };
 }
 
 async function obter(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool, acesso: 'visualizar' | 'gerenciar' = 'gerenciar') {
@@ -99,7 +100,7 @@ function podeGerenciar(user: AuthUser, item: Record<string, unknown>): boolean {
 
 function alteracoes(before: Record<string, unknown>, after: Record<string, unknown>) {
   const result: Record<string, { de: unknown; para: unknown }> = {};
-  const fields = ['dataPagamento','sedeId','observacao','kmPorLitro','valorCombustivel','kmInicial','kmFinal','totalPercorrido','despesaCombustivel',...CAMPOS_ADICIONAIS,'totalDespesas','lucroFinal'];
+  const fields = ['dataPagamento','dataChegada','sedeId','observacao','kmPorLitro','valorCombustivel','kmInicial','kmFinal','totalPercorrido','despesaCombustivel',...CAMPOS_ADICIONAIS,'totalDespesas','lucroFinal'];
   for (const key of fields) if (String(before[key] ?? '') !== String(after[key] ?? '')) result[key] = { de: before[key], para: after[key] };
   return result;
 }
@@ -175,8 +176,8 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     try {
       await client.query('begin');
       const access = await validarAcessoSede(client,user,payload);
-      const inserted = await client.query(`insert into lancamentos_cargas (numero_carga,colaborador_id,data_pagamento,sede_id,observacao,km_por_litro,valor_combustivel,km_inicial,km_final,total_percorrido,despesa_combustivel,salario_funcionarios,diarias_motoristas,diarias_ajudantes,descarrego,avarias,alimentacao,ajudante_extra,manutencao_veiculo,outros,total_despesas,lucro_carga,lucro_final,resumo_carga,detalhes_carga) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24::jsonb,$25::jsonb) returning numero_lancamento_carga`,
-        [numeroCarga,user.id,access.dataPagamento,access.sedeId,access.observacao,costs.kmPorLitro,costs.valorCombustivel,costs.kmInicial,costs.kmFinal,costs.totalPercorrido,costs.despesaCombustivel,costs.salarioFuncionarios,costs.diariasMotoristas,costs.diariasAjudantes,costs.descarrego,costs.avarias,costs.alimentacao,costs.ajudanteExtra,costs.manutencaoVeiculo,costs.outros,costs.totalDespesas,costs.lucroCarga,costs.lucroFinal,JSON.stringify(resumoCarga),JSON.stringify(detalhesCarga)]);
+      const inserted = await client.query(`insert into lancamentos_cargas (numero_carga,colaborador_id,data_pagamento,data_chegada,sede_id,observacao,km_por_litro,valor_combustivel,km_inicial,km_final,total_percorrido,despesa_combustivel,salario_funcionarios,diarias_motoristas,diarias_ajudantes,descarrego,avarias,alimentacao,ajudante_extra,manutencao_veiculo,outros,total_despesas,lucro_carga,lucro_final,resumo_carga,detalhes_carga) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25::jsonb,$26::jsonb) returning numero_lancamento_carga`,
+        [numeroCarga,user.id,access.dataPagamento,access.dataChegada,access.sedeId,access.observacao,costs.kmPorLitro,costs.valorCombustivel,costs.kmInicial,costs.kmFinal,costs.totalPercorrido,costs.despesaCombustivel,costs.salarioFuncionarios,costs.diariasMotoristas,costs.diariasAjudantes,costs.descarrego,costs.avarias,costs.alimentacao,costs.ajudanteExtra,costs.manutencaoVeiculo,costs.outros,costs.totalDespesas,costs.lucroCarga,costs.lucroFinal,JSON.stringify(resumoCarga),JSON.stringify(detalhesCarga)]);
       const numero = Number(inserted.rows[0].numero_lancamento_carga);
       const created = await obter(numero,user,client);
       await auditar(client,user,numero,'INSERCAO',null,created);
@@ -202,8 +203,8 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
       if (!before) notFound('Lançamento de carga não encontrado ou sem acesso.');
       const access = await validarAcessoSede(client,user,payload);
       const costs = calcularCustos(payload,Number(before!.lucroCarga));
-      await client.query(`update lancamentos_cargas set data_pagamento=$1,sede_id=$2,observacao=$3,km_por_litro=$4,valor_combustivel=$5,km_inicial=$6,km_final=$7,total_percorrido=$8,despesa_combustivel=$9,salario_funcionarios=$10,diarias_motoristas=$11,diarias_ajudantes=$12,descarrego=$13,avarias=$14,alimentacao=$15,ajudante_extra=$16,manutencao_veiculo=$17,outros=$18,total_despesas=$19,lucro_final=$20,atualizado_em=now() where numero_lancamento_carga=$21`,
-        [access.dataPagamento,access.sedeId,access.observacao,costs.kmPorLitro,costs.valorCombustivel,costs.kmInicial,costs.kmFinal,costs.totalPercorrido,costs.despesaCombustivel,costs.salarioFuncionarios,costs.diariasMotoristas,costs.diariasAjudantes,costs.descarrego,costs.avarias,costs.alimentacao,costs.ajudanteExtra,costs.manutencaoVeiculo,costs.outros,costs.totalDespesas,costs.lucroFinal,numero]);
+      await client.query(`update lancamentos_cargas set data_pagamento=$1,data_chegada=$2,sede_id=$3,observacao=$4,km_por_litro=$5,valor_combustivel=$6,km_inicial=$7,km_final=$8,total_percorrido=$9,despesa_combustivel=$10,salario_funcionarios=$11,diarias_motoristas=$12,diarias_ajudantes=$13,descarrego=$14,avarias=$15,alimentacao=$16,ajudante_extra=$17,manutencao_veiculo=$18,outros=$19,total_despesas=$20,lucro_final=$21,atualizado_em=now() where numero_lancamento_carga=$22`,
+        [access.dataPagamento,access.dataChegada,access.sedeId,access.observacao,costs.kmPorLitro,costs.valorCombustivel,costs.kmInicial,costs.kmFinal,costs.totalPercorrido,costs.despesaCombustivel,costs.salarioFuncionarios,costs.diariasMotoristas,costs.diariasAjudantes,costs.descarrego,costs.avarias,costs.alimentacao,costs.ajudanteExtra,costs.manutencaoVeiculo,costs.outros,costs.totalDespesas,costs.lucroFinal,numero]);
       const after = await obter(numero,user,client);
       const diff = alteracoes(before!,after!);
       if (Object.keys(diff).length) await auditar(client,user,numero,'EDICAO',before,after,diff);

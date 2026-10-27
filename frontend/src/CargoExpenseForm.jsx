@@ -52,6 +52,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
   const initialSede = launch?.sedeId || cargoSites[0]?.id || ''
   const [form, setForm] = useState({
     dataPagamento: launch?.dataPagamento || today,
+    dataChegada: launch?.dataChegada || '',
     sedeId: initialSede,
     kmPorLitro: expense?.kmPorLitro ?? '', kmInicial: expense?.kmInicial ?? '', kmFinal: expense?.kmFinal ?? '',
     observacao: launch?.observacao || '',
@@ -108,6 +109,7 @@ export default function CargoExpenseForm({ cargo, catalogs, initial, numeroLanca
       <div className="auto-info full cargo-expense-context"><div><span>Carga</span><strong>#{cargo?.numeroCarga || expense?.numeroCarga}</strong></div><div><span>Centro de custo</span><strong>Cargas</strong></div><div><span>Grupo / conta</span><strong>Despesas de Carga</strong></div><div><span>Lucro da carga</span><strong>{currency(lucroCarga)}</strong></div></div>
       <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} disabled={readOnly} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
       <label>Sede<select required value={form.sedeId} disabled={readOnly} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{cargoSites.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
+      <label>Data de chegada<input required type="date" value={form.dataChegada} disabled={readOnly} onChange={(event) => change('dataChegada', event.target.value)}/></label>
       <label>Km/L<input required type="text" inputMode="decimal" value={form.kmPorLitro} disabled={readOnly} onChange={(event) => change('kmPorLitro', event.target.value.replace(/[^0-9,.]/g, ''))} placeholder="Ex.: 8,5"/></label>
       <MoneyField label="Valor do combustível" value={money.valorCombustivel} disabled={readOnly} onChange={(value) => setMoney((current) => ({ ...current, valorCombustivel: value }))}/>
       <label>Km inicial<input required type="text" inputMode="decimal" value={form.kmInicial} disabled={readOnly} onChange={(event) => change('kmInicial', event.target.value.replace(/[^0-9,.]/g, ''))}/></label>
