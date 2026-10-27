@@ -35,10 +35,9 @@ export default function LancamentosCargasPage({ user, catalogs, refreshKey, onNe
 
   async function allRows(format) {
     try {
-      const first = await api(`/api/lancamentos-cargas${qs({ ...filters, page: 1, limit: 500 })}`)
-      if (!first.content.length) return notify('Não há lançamentos de cargas para exportar.', 'error')
-      const rows = [...first.content]
-      for (let current = 2; current <= Math.ceil(first.total / 500); current += 1) rows.push(...(await api(`/api/lancamentos-cargas${qs({ ...filters, page: current, limit: 500 })}`)).content)
+      const result = await api(`/api/lancamentos-cargas/exportacao${qs(filters)}`)
+      if (!result.content.length) return notify('Não há lançamentos de cargas para exportar.', 'error')
+      const rows = result.content
       const exporters = await import('./export.js')
       if (format === 'xlsx') await exporters.exportCargoExcel(rows); else exporters.exportCargoPdf(rows)
       notify(`${rows.length} lançamento(s) de cargas exportado(s).`)

@@ -122,6 +122,24 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     return { content: rows.rows, page, limit, total: resumo.total || 0, resumo };
   });
 
+  app.get('/api/lancamentos-cargas/exportacao', async (request) => {
+    const user = request.authUser!; exigirAcesso(user);
+    const q = request.query as Record<string, string | undefined>;
+    const where = ['lc.excluido_em is null'];
+    const params: unknown[] = [];
+    if (!isPrivileged(user)) { params.push(user.id); where.push(`base."colaboradorId"=$${params.length}`); }
+    if (q.inicio) { params.push(dateOnly(q.inicio, 'Data inicial')); where.push(`base."dataPagamento"::date >= $${params.length}`); }
+    if (q.fim) { params.push(dateOnly(q.fim, 'Data final')); where.push(`base."dataPagamento"::date <= $${params.length}`); }
+    if (q.sedeId) { params.push(positiveId(q.sedeId, 'Sede')); where.push(`base."sedeId"=$${params.length}`); }
+    if (q.colaboradorId && isPrivileged(user)) { params.push(positiveId(q.colaboradorId, 'Colaborador')); where.push(`base."colaboradorId"=$${params.length}`); }
+    if (q.busca?.trim()) {
+      params.push(`%${q.busca.trim()}%`);
+      where.push(`(base."numeroCarga"::text ilike $${params.length} or base.observacao ilike $${params.length} or base.destino ilike $${params.length} or base.motorista ilike $${params.length} or base.colaborador ilike $${params.length})`);
+    }
+    const { rows } = await pool.query(`${SELECT_DETALHE} where ${where.join(' and ')} order by base."criadoEm" desc`, params);
+    return { content: rows, total: rows.length };
+  });
+
   app.get('/api/lancamentos-cargas/:numero', async (request) => {
     const user = request.authUser!; exigirAcesso(user);
     const numero = positiveId((request.params as { numero: string }).numero, 'Lançamento de carga');
