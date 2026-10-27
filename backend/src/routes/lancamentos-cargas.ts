@@ -39,6 +39,13 @@ const SELECT_DETALHE = `
     lc.outros::float8 as outros,lc.resumo_carga as "resumoCarga",lc.detalhes_carga as "detalhesCarga"
   from (${SELECT_LISTA}) base join lancamentos_cargas lc on lc.numero_lancamento_carga=base."numeroLancamentoCarga"`;
 
+const SELECT_EXPORTACAO = `
+  select base.*,lc.km_por_litro::float8 as "kmPorLitro",lc.valor_combustivel::float8 as "valorCombustivel",
+    lc.km_inicial::float8 as "kmInicial",lc.km_final::float8 as "kmFinal",lc.total_percorrido::float8 as "totalPercorrido",
+    lc.despesa_combustivel::float8 as "despesaCombustivel",lc.total_despesas::float8 as "totalDespesas",
+    lc.lucro_carga::float8 as "lucroCarga",lc.lucro_final::float8 as "lucroFinal",lc.resumo_carga as "resumoCarga"
+  from (${SELECT_LISTA}) base join lancamentos_cargas lc on lc.numero_lancamento_carga=base."numeroLancamentoCarga"`;
+
 function hojeFortaleza(): string {
   const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Fortaleza', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
   const get = (type: string) => parts.find((part) => part.type === type)?.value;
@@ -136,7 +143,7 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
       params.push(`%${q.busca.trim()}%`);
       where.push(`(base."numeroCarga"::text ilike $${params.length} or base.observacao ilike $${params.length} or base.destino ilike $${params.length} or base.motorista ilike $${params.length} or base.colaborador ilike $${params.length})`);
     }
-    const { rows } = await pool.query(`${SELECT_DETALHE} where ${where.join(' and ')} order by base."criadoEm" desc`, params);
+    const { rows } = await pool.query(`${SELECT_EXPORTACAO} where ${where.join(' and ')} order by base."criadoEm" desc`, params);
     return { content: rows, total: rows.length };
   });
 
