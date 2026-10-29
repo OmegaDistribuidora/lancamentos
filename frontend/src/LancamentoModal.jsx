@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from 'react'
 import { Save } from 'lucide-react'
 import { api } from './api.js'
-import { todayFortaleza } from './format.js'
+import { currency, shortDate, todayFortaleza } from './format.js'
 import { Modal, SearchableSelect } from './components.jsx'
 import { formatMoneyInput, moneyInputFromValue, moneyInputToNumber, sanitizeMoneyInput } from './moneyInput.js'
 
 export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
   const today = todayFortaleza()
+  const readOnly = item?.podeEditar === false
   const [form, setForm] = useState(() => {
     const sedeId = item?.sedeId || catalogs.sedes[0]?.id || ''
     const primeiroCentro = catalogs.centrosCusto.find((centro) => String(centro.sedeId) === String(sedeId))
@@ -50,7 +51,9 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
   }
 
   async function submit(event) {
-    event.preventDefault(); setLoading(true); setError('')
+    event.preventDefault(); setError('')
+    if (readOnly) return
+    setLoading(true)
     const valor = moneyInputToNumber(valueDigits)
     if (valor <= 0) { setError('Informe um valor maior que zero.'); setLoading(false); return }
     if (form.dataPagamento > today) { setError('A data de pagamento não pode ser futura.'); setLoading(false); return }
@@ -61,20 +64,36 @@ export default function LancamentoModal({ item, catalogs, onClose, onSaved }) {
     } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
-  return <Modal title={item ? `Editar lançamento #${item.numeroLancamento}` : 'Novo lançamento'} subtitle={item ? 'As alterações ficarão registradas na auditoria.' : 'Preencha os dados da despesa para registrar.'} onClose={onClose} wide>
+  if (readOnly) return <Modal title={`Consultar lançamento #${item.numeroLancamento}`} subtitle="Este lançamento foi criado por outro colaborador e está disponível somente para consulta." onClose={onClose} wide>
+    <div className="modal-body form-grid">
+      <div className="readonly-notice full">Consulta somente leitura. Apenas o colaborador que criou este lançamento ou um perfil administrativo pode alterá-lo.</div>
+      <div className="auto-info full"><div><span>Data do lançamento</span><strong>{shortDate(item.dataLancamento)}</strong></div><div><span>Hora</span><strong>{item.hora}</strong></div><div><span>Colaborador</span><strong>{item.colaborador}</strong></div></div>
+      <label>Data de pagamento<input value={shortDate(item.dataPagamento)} disabled readOnly/></label>
+      <label>Sede<input value={item.sede} disabled readOnly/></label>
+      <label>Centro de custo<input value={item.centroCusto} disabled readOnly/></label>
+      <label>Grupo de contas<input value={item.grupoConta} disabled readOnly/></label>
+      <label>Conta<input value={item.conta} disabled readOnly/></label>
+      <label>Valor (R$)<input value={currency(item.valor)} disabled readOnly/></label>
+      <label className="full">Observação<textarea rows="4" value={item.observacao || ''} disabled readOnly/></label>
+    </div>
+    <footer className="modal-footer"><button type="button" className="secondary" onClick={onClose}>Fechar</button></footer>
+  </Modal>
+
+  return <Modal title={item ? `${readOnly ? 'Consultar' : 'Editar'} lançamento #${item.numeroLancamento}` : 'Novo lançamento'} subtitle={item ? (readOnly ? 'Este lançamento foi criado por outro colaborador e está disponível somente para consulta.' : 'As alterações ficarão registradas na auditoria.') : 'Preencha os dados da despesa para registrar.'} onClose={onClose} wide>
     <form onSubmit={submit}>
       <div className="modal-body form-grid">
+        {readOnly && <div className="readonly-notice full">Consulta somente leitura. Apenas o colaborador que criou este lançamento ou um perfil administrativo pode alterá-lo.</div>}
         {item && <div className="auto-info full"><div><span>Data do lançamento</span><strong>{item.dataLancamento}</strong></div><div><span>Hora</span><strong>{item.hora}</strong></div><div><span>Colaborador</span><strong>{item.colaborador}</strong></div></div>}
-        <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
-        <label>Sede<select required value={form.sedeId} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{catalogs.sedes.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
-        <label>Centro de custo<select required value={form.centroCustoId} onChange={(event) => change('centroCustoId', event.target.value)} disabled={!form.sedeId}><option value="">Selecione</option>{costCenters.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
-        <label>Grupo de contas<SearchableSelect options={groups} value={form.grupoContaId} onChange={(value) => change('grupoContaId', value)} disabled={!form.sedeId} placeholder="Digite o código ou nome do grupo"/></label>
-        <label>Conta<SearchableSelect options={accounts} value={form.contaId} onChange={(value) => change('contaId', value)} disabled={!form.grupoContaId} placeholder={form.grupoContaId ? 'Digite o código ou nome da conta' : 'Escolha o grupo primeiro'}/></label>
-        <label>Valor (R$)<input required className="currency-entry" type="text" inputMode="numeric" value={formatMoneyInput(valueDigits)} onFocus={() => { replaceValueOnType.current = Boolean(valueDigits) }} onKeyDown={valueKeyDown} onPaste={pasteValue} onChange={() => undefined} placeholder="0,00" autoComplete="off"/></label>
-        <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes que ajudem a identificar o lançamento."/></label>
+        <label>Data de pagamento<input required type="date" max={today} value={form.dataPagamento} disabled={readOnly} onChange={(event) => change('dataPagamento', event.target.value)}/></label>
+        <label>Sede<select required value={form.sedeId} disabled={readOnly} onChange={(event) => change('sedeId', event.target.value)}><option value="">Selecione</option>{catalogs.sedes.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
+        <label>Centro de custo<select required value={form.centroCustoId} onChange={(event) => change('centroCustoId', event.target.value)} disabled={readOnly || !form.sedeId}><option value="">Selecione</option>{costCenters.map((row) => <option key={row.id} value={row.id}>{row.nome}</option>)}</select></label>
+        <label>Grupo de contas<SearchableSelect options={groups} value={form.grupoContaId} onChange={(value) => change('grupoContaId', value)} disabled={readOnly || !form.sedeId} placeholder="Digite o código ou nome do grupo"/></label>
+        <label>Conta<SearchableSelect options={accounts} value={form.contaId} onChange={(value) => change('contaId', value)} disabled={readOnly || !form.grupoContaId} placeholder={form.grupoContaId ? 'Digite o código ou nome da conta' : 'Escolha o grupo primeiro'}/></label>
+        <label>Valor (R$)<input required className="currency-entry" type="text" inputMode="numeric" value={formatMoneyInput(valueDigits)} disabled={readOnly} onFocus={() => { replaceValueOnType.current = Boolean(valueDigits) }} onKeyDown={valueKeyDown} onPaste={pasteValue} onChange={() => undefined} placeholder="0,00" autoComplete="off"/></label>
+        <label className="full">Observação<textarea rows="4" maxLength="2000" value={form.observacao} disabled={readOnly} onChange={(event) => change('observacao', event.target.value)} placeholder="Inclua detalhes que ajudem a identificar o lançamento."/></label>
         {error && <div className="form-error full">{error}</div>}
       </div>
-      <footer className="modal-footer"><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={loading}><Save size={18}/>{loading ? 'Salvando...' : 'Salvar lançamento'}</button></footer>
+      <footer className="modal-footer"><button type="button" className="secondary" onClick={onClose}>{readOnly ? 'Fechar' : 'Cancelar'}</button>{!readOnly && <button className="primary" disabled={loading}><Save size={18}/>{loading ? 'Salvando...' : 'Salvar lançamento'}</button>}</footer>
     </form>
   </Modal>
 }

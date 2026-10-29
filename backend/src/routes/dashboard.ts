@@ -87,7 +87,7 @@ export async function registerDashboardRoutes(app: FastifyInstance): Promise<voi
     const launchFilters: string[] = [];
     if (!privileged) {
       params.push(user.id);
-      launchFilters.push(`and l.colaborador_id=$${params.length}`);
+      launchFilters.push(`and exists(select 1 from usuario_sedes us where us.usuario_id=$${params.length} and us.sede_id=l.sede_id)`);
     }
     let budgetSedeFilter = '';
     let sedeId: number | null = null;

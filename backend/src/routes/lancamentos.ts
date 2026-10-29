@@ -63,12 +63,18 @@ async function validateAccess(client: PoolClient, user: AuthUser, payload: Recor
   return { dataPagamento,sedeId,centroCustoId,grupoContaId,contaId,observacao: optionalText(payload.observacao),valor: money(payload.valor) };
 }
 
-async function getOne(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool) {
+async function getOne(numero: number, user: AuthUser, client: PoolClient | typeof pool = pool, acesso: 'visualizar' | 'gerenciar' = 'gerenciar') {
   const params: unknown[] = [numero];
-  const ownership = isPrivileged(user) ? '' : 'and l.colaborador_id=$2';
+  const ownership = isPrivileged(user) ? '' : acesso === 'visualizar'
+    ? 'and exists(select 1 from usuario_sedes us where us.usuario_id=$2 and us.sede_id=l.sede_id)'
+    : 'and l.colaborador_id=$2';
   if (!isPrivileged(user)) params.push(user.id);
   const { rows } = await client.query(`${SELECT} where l.numero_lancamento=$1 and l.excluido_em is null and not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento) ${ownership}`,params);
   return rows[0] as Record<string, unknown> | undefined;
+}
+
+function podeGerenciar(user: AuthUser, item: Record<string, unknown>): boolean {
+  return isPrivileged(user) || Number(item.colaboradorId) === Number(user.id);
 }
 
 export async function registerLancamentoRoutes(app: FastifyInstance): Promise<void> {
@@ -78,7 +84,7 @@ export async function registerLancamentoRoutes(app: FastifyInstance): Promise<vo
     const page = Math.max(1,Number(q.page || 1)); const limit = Math.min(5000,Math.max(1,Number(q.limit || 15)));
     const where = ['l.excluido_em is null','not exists(select 1 from despesas_cargas dc where dc.numero_lancamento=l.numero_lancamento)'];
     const params: unknown[] = [];
-    if (!isPrivileged(user)) { params.push(user.id); where.push(`l.colaborador_id=$${params.length}`); }
+    if (!isPrivileged(user)) { params.push(user.id); where.push(`exists(select 1 from usuario_sedes us where us.usuario_id=$${params.length} and us.sede_id=l.sede_id)`); }
     if (q.inicio) { params.push(dateOnly(q.inicio,'Data inicial')); where.push(`l.data_pagamento >= $${params.length}`); }
     if (q.fim) { params.push(dateOnly(q.fim,'Data final')); where.push(`l.data_pagamento <= $${params.length}`); }
     if (q.busca?.trim()) { params.push(`%${q.busca.trim()}%`); where.push(`(l.observacao ilike $${params.length} or c.nome ilike $${params.length} or u.nome_exibicao ilike $${params.length})`); }
@@ -91,10 +97,10 @@ export async function registerLancamentoRoutes(app: FastifyInstance): Promise<vo
     params.push(limit,(page-1)*limit);
     const rows=await pool.query(`${SELECT} where ${clause} order by l.criado_em desc limit $${params.length-1} offset $${params.length}`,params);
     const resumo=summary.rows[0]||{total:0,valorTotal:0,valorMedio:0,maiorValor:0};
-    return {content:rows.rows,page,limit,total:resumo.total||0,resumo};
+    return {content:rows.rows.map((item)=>({...item,podeEditar:podeGerenciar(user,item)})),page,limit,total:resumo.total||0,resumo};
   });
 
-  app.get('/api/lancamentos/:numero',async(request)=>{const user=request.authUser!;exigirAcesso(user);const numero=positiveId((request.params as {numero:string}).numero,'Lançamento');return await getOne(numero,user)||notFound('Lançamento não encontrado.');});
+  app.get('/api/lancamentos/:numero',async(request)=>{const user=request.authUser!;exigirAcesso(user);const numero=positiveId((request.params as {numero:string}).numero,'Lançamento');const item=await getOne(numero,user,pool,'visualizar');return item?{...item,podeEditar:podeGerenciar(user,item)}:notFound('Lançamento não encontrado ou fora das suas sedes liberadas.');});
 
   app.post('/api/lancamentos',async(request,reply)=>{const user=request.authUser!;exigirAcesso(user);const client=await pool.connect();try{await client.query('begin');const data=await validateAccess(client,user,(request.body||{}) as Record<string,unknown>);const inserted=await client.query(`insert into lancamentos (colaborador_id,data_pagamento,sede_id,centro_custo_id,grupo_conta_id,conta_id,observacao,valor) values($1,$2,$3,$4,$5,$6,$7,$8) returning numero_lancamento`,[user.id,data.dataPagamento,data.sedeId,data.centroCustoId,data.grupoContaId,data.contaId,data.observacao,data.valor]);const numero=Number(inserted.rows[0].numero_lancamento);const created=await getOne(numero,user,client);await audit(client,user,numero,'INSERCAO',null,created);await client.query('commit');reply.status(201);return created;}catch(error){await client.query('rollback');throw error;}finally{client.release();}});
 
