@@ -130,10 +130,10 @@ export async function registerCargoLaunchRoutes(app: FastifyInstance): Promise<v
     if (q.colaboradorId && isPrivileged(user)) { params.push(positiveId(q.colaboradorId, 'Colaborador')); where.push(`lc.colaborador_id=$${params.length}`); }
     if (q.busca?.trim()) { params.push(`%${q.busca.trim()}%`); where.push(`(lc.numero_carga::text ilike $${params.length} or lc.observacao ilike $${params.length} or lc.resumo_carga->>'destino' ilike $${params.length} or lc.resumo_carga#>>'{motorista,nome}' ilike $${params.length} or u.nome_exibicao ilike $${params.length})`); }
     const clause = where.join(' and ');
-    const summary = await pool.query(`select count(*)::int as total,coalesce(sum(lc.total_despesas),0)::float8 as "valorTotal",coalesce(sum(nullif(lc.resumo_carga#>>'{totais,valor}','')::numeric),0)::float8 as "valorVendaTotal",coalesce(avg(lc.total_despesas),0)::float8 as "valorMedio",coalesce(sum(lc.lucro_final),0)::float8 as "lucroFinal" from lancamentos_cargas lc join usuarios u on u.id=lc.colaborador_id where ${clause}`, params);
+    const summary = await pool.query(`select count(*)::int as total,coalesce(sum(lc.total_despesas),0)::float8 as "valorTotal",coalesce(sum(nullif(lc.resumo_carga#>>'{totais,valor}','')::numeric),0)::float8 as "valorVendaTotal",coalesce(avg(lc.total_despesas),0)::float8 as "valorMedio",coalesce(sum(lc.lucro_carga),0)::float8 as "lucroBruto",coalesce(sum(lc.lucro_final),0)::float8 as "lucroFinal" from lancamentos_cargas lc join usuarios u on u.id=lc.colaborador_id where ${clause}`, params);
     params.push(limit,(page-1)*limit);
     const rows = await pool.query(`${SELECT_LISTA} where ${clause} order by lc.criado_em desc limit $${params.length-1} offset $${params.length}`, params);
-    const resumo = summary.rows[0] || { total: 0, valorTotal: 0, valorVendaTotal: 0, valorMedio: 0, lucroFinal: 0 };
+    const resumo = summary.rows[0] || { total: 0, valorTotal: 0, valorVendaTotal: 0, valorMedio: 0, lucroBruto: 0, lucroFinal: 0 };
     return { content: rows.rows.map((item) => ({ ...item, podeEditar: podeGerenciar(user,item) })), page, limit, total: resumo.total || 0, resumo };
   });
 

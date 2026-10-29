@@ -22,7 +22,7 @@ const tripDays = (departure, arrival) => {
   const start = new Date(`${String(departure).slice(0, 10)}T12:00:00Z`)
   const end = new Date(`${String(arrival).slice(0, 10)}T12:00:00Z`)
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return null
-  return Math.round((end.getTime() - start.getTime()) / 86_400_000)
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1
 }
 
 const ratio = (value, base) => Number(base) ? Number(value || 0) / Number(base) : null

@@ -166,6 +166,7 @@ td small { display:block; color:#8994a5; margin-top:3px; white-space:nowrap; }
 .filters { position:relative; margin-bottom:14px; padding:14px; display:grid; grid-template-columns:minmax(240px,2fr) repeat(4,minmax(125px,1fr)); gap:11px; align-items:end; }
 .launch-filters { grid-template-columns:minmax(250px,2fr) repeat(auto-fit,minmax(135px,1fr)); }
 .launch-metrics { margin-top:0; grid-template-columns:repeat(5,minmax(0,1fr)); }
+.cargo-launch-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .loading-metrics { opacity:.55; transition:opacity .18s; }
 .filters label { gap:5px; }
 .filters input,.filters select { height:41px; padding:8px 10px; }
