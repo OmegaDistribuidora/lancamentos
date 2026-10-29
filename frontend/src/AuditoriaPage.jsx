@@ -5,7 +5,7 @@ import { dateTime } from './format.js'
 import { Empty, Loading, Modal } from './components.jsx'
 
 const ACTIONS = { INSERCAO: 'Inserção', EDICAO: 'Edição', EXCLUSAO: 'Exclusão', ATIVACAO: 'Ativação', INATIVACAO: 'Inativação' }
-const FIELDS = { dataPagamento: 'Data de pagamento', sedeId: 'Sede', centroCustoId: 'Centro de custo', grupoContaId: 'Grupo de contas', contaId: 'Conta', observacao: 'Observação', valor: 'Valor', nome: 'Nome', sede: 'Sede', kmPorLitro: 'Km/L', valorCombustivel: 'Valor do combustível', kmInicial: 'Km inicial', kmFinal: 'Km final', totalPercorrido: 'Total percorrido', despesaCombustivel: 'Despesa com combustível', totalDespesas: 'Total das despesas', lucroFinal: 'Lucro final' }
+const FIELDS = { dataPagamento: 'Data de pagamento', sedeId: 'Sede', centroCustoId: 'Centro de custo', grupoContaId: 'Grupo de contas', contaId: 'Conta', observacao: 'Observação', valor: 'Valor', nome: 'Nome', sede: 'Sede', kmPorLitro: 'Km/L', valorCombustivel: 'Valor do combustível', kmInicial: 'Km inicial', kmFinal: 'Km final', totalPercorrido: 'Total percorrido', despesaCombustivel: 'Despesa com combustível', totalDespesas: 'Total das despesas', lucroFinal: 'Lucro Líquido' }
 const display = (value) => value === null || value === undefined || value === '' ? '—' : String(value)
 const isCostCenter = (item) => item.entidadeTipo === 'CENTRO_CUSTO'
 const isCatalog = (item) => item.entidadeTipo === 'GRUPO_CONTA' || item.entidadeTipo === 'CONTA'

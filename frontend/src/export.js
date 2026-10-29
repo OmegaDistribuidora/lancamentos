@@ -58,13 +58,13 @@ const cargoRows = (items) => items.map((item) => ({
   'Venda total da carga': Number(item.valorVendaCarga),
   'Valor dos documentos': Number(item.resumoCarga?.totais?.valorDocumentos),
   'Custo da carga': Number(item.resumoCarga?.totais?.custo),
-  'Lucro da carga': Number(item.lucroCarga),
+  'Lucro bruto': Number(item.lucroCarga),
   '% Lucro Carga': ratio(item.lucroCarga, item.resumoCarga?.totais?.custo),
   Bonificações: Number(item.resumoCarga?.totais?.valorBonificacoes),
   Despesas: Number(item.totalDespesas),
   '% despesas / venda': ratio(item.totalDespesas, item.valorVendaCarga),
   '% despesas / lucro total da carga': ratio(item.totalDespesas, item.lucroCarga),
-  'Lucro final': Number(item.lucroFinal),
+  'Lucro líquido': Number(item.lucroFinal),
   'Peso (kg)': item.resumoCarga?.totais?.pesoKg,
   Pedidos: item.resumoCarga?.totais?.pedidos,
   Clientes: item.resumoCarga?.totais?.clientes,
@@ -76,7 +76,7 @@ const cargoRows = (items) => items.map((item) => ({
 
 const escapeXml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const excelColumn = (index) => { let result = ''; for (let n = index + 1; n; n = Math.floor((n - 1) / 26)) result = String.fromCharCode(65 + ((n - 1) % 26)) + result; return result }
-const MONEY_COLUMNS = new Set(['Valor', 'Venda total da carga', 'Valor dos documentos', 'Custo da carga', 'Lucro da carga', 'Bonificações', 'Despesas', 'Lucro final', 'Valor do combustível', 'Despesa com combustível'])
+const MONEY_COLUMNS = new Set(['Valor', 'Venda total da carga', 'Valor dos documentos', 'Custo da carga', 'Lucro bruto', 'Bonificações', 'Despesas', 'Lucro líquido', 'Valor do combustível', 'Despesa com combustível'])
 const PERCENT_COLUMNS = new Set(['% Lucro Carga', '% despesas / venda', '% despesas / lucro total da carga'])
 
 function sheetXml(data) {
@@ -100,7 +100,7 @@ export async function exportExcel(items, type = 'normal') {
   const sheetRows = [headers, ...data.map((row) => headers.map((key) => row[key]))].map((row, rowIndex) => {
     const cells = row.map((value, colIndex) => {
       const ref = `${column(colIndex)}${rowIndex + 1}`
-      if (rowIndex > 0 && ['Valor', 'Venda total da carga', 'Despesas', 'Lucro final'].includes(headers[colIndex])) return `<c r="${ref}" s="2"><v>${Number(value || 0)}</v></c>`
+      if (rowIndex > 0 && ['Valor', 'Venda total da carga', 'Despesas', 'Lucro líquido'].includes(headers[colIndex])) return `<c r="${ref}" s="2"><v>${Number(value || 0)}</v></c>`
       return `<c r="${ref}" t="inlineStr"${rowIndex === 0 ? ' s="1"' : ''}><is><t>${escape(value)}</t></is></c>`
     }).join('')
     return `<row r="${rowIndex + 1}">${cells}</row>`
