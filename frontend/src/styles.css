@@ -456,6 +456,54 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
 .catalog-status.active { color:#087b4c; background:#dcf8e9; }
 .catalog-status.inactive { color:#a94419; background:#fff0e8; }
 .catalog-status.source-missing { color:#667085; background:#e9edf3; }
+.recalculation-layout { display:grid; gap:14px; }
+.recalculation-head { padding:20px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.recalculation-head>div:first-child { min-width:0; display:flex; align-items:flex-start; gap:13px; }
+.recalculation-icon { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; color:#176fe5; background:#e6f0ff; border-radius:12px; }
+.recalculation-head h2,.recalculation-history h2 { font-size:17px; }
+.recalculation-head p,.recalculation-history header p { max-width:750px; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.55; }
+.recalculation-action { flex:0 0 auto; display:flex; align-items:flex-end; gap:9px; }
+.recalculation-action label { min-width:175px; display:flex; flex-direction:column; gap:5px; color:#43516a; font-size:11px; font-weight:700; }
+.recalculation-action input { min-height:41px; }
+.recalculation-progress { padding:20px; }
+.recalculation-progress header,.recalculation-history>header { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.recalculation-progress header>div { display:flex; flex-direction:column; gap:3px; }
+.recalculation-progress header strong { font-size:16px; }
+.recalculation-progress header div span,.recalculation-progress>p { color:var(--muted); font-size:11px; }
+.progress-track { height:10px; margin:17px 0 13px; overflow:hidden; background:#e7edf6; border-radius:999px; }
+.progress-track>span { height:100%; display:block; background:linear-gradient(90deg,#1674e8,#20a4ef); border-radius:inherit; transition:width .35s ease; }
+.recalculation-counts { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.recalculation-counts span { padding:10px 12px; display:flex; flex-direction:column; color:var(--muted); background:#f6f8fc; border-radius:9px; font-size:10px; }
+.recalculation-counts strong { color:var(--ink); font-size:15px; }
+.recalculation-progress>p { margin-top:12px; }
+.recalculation-status { width:max-content; display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:999px; font-size:9px; font-weight:800; white-space:nowrap; }
+.recalculation-status.processando { color:#0c60c8; background:#e6f1ff; }
+.recalculation-status.concluido { color:#087b4c; background:#dcf8e9; }
+.recalculation-status.concluido_com_erros { color:#98600b; background:#fff1cc; }
+.recalculation-status.falhou { color:#b42318; background:#fee4e2; }
+.recalculation-history { padding:20px; }
+.secondary.compact { min-height:36px; padding:7px 11px; }
+.recalculation-list { margin-top:14px; }
+.recalculation-list article { padding:15px 0; display:grid; grid-template-columns:38px minmax(260px,.8fr) minmax(480px,1.2fr); gap:13px; align-items:start; border-top:1px solid #e8edf4; }
+.recalculation-state { width:36px; height:36px; display:grid; place-items:center; color:#087b4c; background:#dcf8e9; border-radius:10px; }
+.recalculation-state.processando { color:#0c60c8; background:#e6f1ff; }
+.recalculation-state.concluido_com_erros { color:#98600b; background:#fff1cc; }
+.recalculation-state.falhou { color:#b42318; background:#fee4e2; }
+.recalculation-main { min-width:0; }
+.recalculation-main>div { display:flex; align-items:center; gap:8px; }
+.recalculation-main p { margin:5px 0 3px; color:#46546c; font-size:11px; }
+.recalculation-main small { color:var(--muted); font-size:9px; }
+.recalculation-main em { display:block; margin-top:6px; color:#b42318; font-size:10px; font-style:normal; }
+.recalculation-comparison { display:grid; grid-template-columns:repeat(2,minmax(170px,1fr)); gap:7px; }
+.recalculation-comparison>div { padding:9px 11px; display:flex; flex-direction:column; background:#f7f9fc; border-radius:8px; }
+.recalculation-comparison span { color:var(--muted); font-size:9px; text-transform:uppercase; }
+.recalculation-comparison strong { margin:2px 0; font-size:12px; }
+.recalculation-comparison small { color:#758196; font-size:8px; }
+.recalculation-list details { grid-column:2/-1; padding:8px 11px; color:#8b4c00; background:#fff8e8; border-radius:8px; font-size:10px; }
+.recalculation-list summary { cursor:pointer; font-weight:700; }
+.recalculation-list ul { margin:7px 0 0 18px; }
+.spin { animation:recalculation-spin 1s linear infinite; }
+@keyframes recalculation-spin { to { transform:rotate(360deg); } }
 .budget-card { grid-column:1/-1; }
 .budget-page-grid { display:grid; grid-template-columns:minmax(260px,.65fr) minmax(520px,1.35fr); gap:15px; }
 .budget-filters { display:flex; align-items:flex-end; gap:10px; }
@@ -508,6 +556,11 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .catalog-settings-grid { grid-template-columns:1fr; }
   .settings-action { margin:0 0 14px; justify-content:flex-start; }
   .catalog-settings-head { align-items:flex-start; flex-direction:column; }
+  .recalculation-head { align-items:flex-start; flex-direction:column; }
+  .recalculation-action { width:100%; }
+  .recalculation-action label { flex:1; }
+  .recalculation-list article { grid-template-columns:38px 1fr; }
+  .recalculation-comparison { grid-column:1/-1; }
   .budget-page-grid { grid-template-columns:1fr; }
   .mobile-action { display:flex; margin-bottom:14px; }
   .mobile-action button { width:100%; }
@@ -567,6 +620,10 @@ code { padding:4px 7px; color:#31577f; background:#edf4fb; border-radius:5px; }
   .cargo-customer-card { grid-template-columns:1fr 1fr; }
   .cargo-details-browser { inset:0; border-radius:0; }
   .budget-list { grid-template-columns:1fr; }
+  .settings-tabs { width:100%; overflow:auto; }
+  .settings-tabs button { flex:0 0 auto; }
+  .recalculation-action { align-items:stretch; flex-direction:column; }
+  .recalculation-counts,.recalculation-comparison { grid-template-columns:1fr 1fr; }
   .budget-row { align-items:flex-start; flex-direction:column; }
   .budget-input { width:100%; }
 }

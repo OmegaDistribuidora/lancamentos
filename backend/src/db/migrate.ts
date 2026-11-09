@@ -466,6 +466,30 @@ export async function migrate(): Promise<void> {
       await client.query(`alter table lancamentos_cargas add column if not exists data_saida date`);
       await client.query(`insert into migracoes (versao) values ('018_data_saida_lancamentos_cargas')`);
     }
+    const cargoRecalculationMigration = await client.query(`select 1 from migracoes where versao='019_recalculos_cargas'`);
+    if (!cargoRecalculationMigration.rowCount) {
+      await client.query(`
+        create table if not exists recalculos_cargas (
+          id bigserial primary key,
+          competencia date not null check (competencia = date_trunc('month', competencia)::date),
+          status varchar(30) not null check (status in ('PROCESSANDO','CONCLUIDO','CONCLUIDO_COM_ERROS','FALHOU')),
+          total_cargas integer not null default 0 check (total_cargas >= 0),
+          cargas_processadas integer not null default 0 check (cargas_processadas >= 0),
+          cargas_atualizadas integer not null default 0 check (cargas_atualizadas >= 0),
+          cargas_sem_alteracao integer not null default 0 check (cargas_sem_alteracao >= 0),
+          cargas_com_erro integer not null default 0 check (cargas_com_erro >= 0),
+          usuario_id bigint not null references usuarios(id),
+          usuario_nome varchar(120) not null,
+          resumo jsonb not null default '{}'::jsonb,
+          erro text,
+          iniciado_em timestamptz not null default now(),
+          concluido_em timestamptz
+        )
+      `);
+      await client.query(`create unique index if not exists uq_recalculos_cargas_processando on recalculos_cargas ((1)) where status='PROCESSANDO'`);
+      await client.query(`create index if not exists idx_recalculos_cargas_iniciado on recalculos_cargas(iniciado_em desc)`);
+      await client.query(`insert into migracoes (versao) values ('019_recalculos_cargas')`);
+    }
     await client.query(`
       insert into usuario_sedes (usuario_id, sede_id)
       select u.id, s.id from usuarios u cross join sedes s where u.login = $1

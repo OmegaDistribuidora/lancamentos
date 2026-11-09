@@ -36,15 +36,17 @@ function rememberCarga(key: string, value: Record<string, unknown>): void {
   }
 }
 
-export async function fetchCarga(numero: number, detalhes = false): Promise<Record<string, unknown>> {
+export async function fetchCarga(numero: number, detalhes = false, forceRefresh = false): Promise<Record<string, unknown>> {
   const key = cacheKey(numero, detalhes);
-  const cached = cachedCarga(key);
-  if (cached) return cached;
+  if (!forceRefresh) {
+    const cached = cachedCarga(key);
+    if (cached) return cached;
 
-  const currentRequest = cargaRequests.get(key);
-  if (currentRequest) return currentRequest;
+    const currentRequest = cargaRequests.get(key);
+    if (currentRequest) return currentRequest;
+  }
 
-  const request = fetchCargaFromOmega(numero, detalhes);
+  const request = fetchCargaFromOmega(numero, detalhes, forceRefresh);
   cargaRequests.set(key, request);
   try {
     const value = await request;
@@ -55,11 +57,11 @@ export async function fetchCarga(numero: number, detalhes = false): Promise<Reco
   }
 }
 
-async function fetchCargaFromOmega(numero: number, detalhes: boolean): Promise<Record<string, unknown>> {
+async function fetchCargaFromOmega(numero: number, detalhes: boolean, forceRefresh = false): Promise<Record<string, unknown>> {
   if (!config.omegaApi.key) throw new HttpError(503, 'Integracao com o WinThor nao configurada.');
   let response: Response;
   try {
-    response = await fetch(`${config.omegaApi.url}/v1/winthor/cargas/${numero}${detalhes ? '/detalhes' : ''}`, {
+    response = await fetch(`${config.omegaApi.url}/v1/winthor/cargas/${numero}${detalhes ? '/detalhes' : ''}${forceRefresh ? '?refresh=true' : ''}`, {
       headers: {
         'X-API-Key': config.omegaApi.key,
         'X-Client-Name': 'lancamentos',

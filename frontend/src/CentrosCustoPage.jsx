@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Building2, Database, Eye, EyeOff, Pencil, Plus, Save, Search, Trash2 } from 'lucide-react'
+import { AlertTriangle, Building2, CheckCircle2, Database, Eye, EyeOff, Pencil, Plus, RefreshCw, Save, Search, Trash2 } from 'lucide-react'
 import { api, qs } from './api.js'
 import { Empty, FilterSelect, Loading, Modal } from './components.jsx'
+import { currency, dateTime, todayFortaleza } from './format.js'
 
 function CentroModal({ item, sedes, sedeInicial, onClose, onSaved, notify }) {
   const [form, setForm] = useState({ nome: item?.nome || '', sedeId: String(item?.sedeId || sedeInicial || sedes[0]?.id || '') })
@@ -106,11 +107,106 @@ function CostCenters({ notify, onChanged }) {
   </>
 }
 
+function previousClosedMonth() {
+  const [year, month] = todayFortaleza().split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 2, 1))
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+function competenceLabel(value) {
+  const match = /^(\d{4})-(\d{2})/.exec(String(value || ''))
+  if (!match) return String(value || '—')
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1, 12))
+  const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date)
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+const recalculationStatus = {
+  PROCESSANDO: 'Em processamento',
+  CONCLUIDO: 'Concluído',
+  CONCLUIDO_COM_ERROS: 'Concluído com erros',
+  FALHOU: 'Falhou',
+}
+
+function RecalculationResult({ job }) {
+  if (!job?.resumo) return null
+  const result = job.resumo
+  const items = [
+    ['Venda total', result.vendaAntes, result.vendaDepois],
+    ['Custo total', result.custoAntes, result.custoDepois],
+    ['Lucro bruto', result.lucroBrutoAntes, result.lucroBrutoDepois],
+    ['Lucro líquido', result.lucroLiquidoAntes, result.lucroLiquidoDepois],
+  ]
+  return <div className="recalculation-comparison">{items.map(([label, before, after]) => <div key={label}>
+    <span>{label}</span><strong>{currency(after)}</strong><small>Antes: {currency(before)} · Diferença: {currency(Number(after || 0) - Number(before || 0))}</small>
+  </div>)}</div>
+}
+
+function CargoRecalculation({ notify }) {
+  const [competence, setCompetence] = useState(previousClosedMonth)
+  const [current, setCurrent] = useState(null)
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [starting, setStarting] = useState(false)
+  const load = useCallback(async (silent = false) => {
+    try {
+      const result = await api('/api/admin/recalculos-cargas')
+      setCurrent(result.atual)
+      setHistory(result.historico || [])
+    } catch (error) {
+      if (!silent) notify(error.message, 'error')
+    } finally { setLoading(false) }
+  }, [notify])
+  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    if (!current || current.status !== 'PROCESSANDO') return undefined
+    const timer = window.setInterval(() => { void load(true) }, 2000)
+    return () => window.clearInterval(timer)
+  }, [current, load])
+  const processed = Number(current?.cargasProcessadas || 0)
+  const total = Number(current?.totalCargas || 0)
+  const progress = total ? Math.min(100, Math.round((processed / total) * 100)) : 0
+  async function start() {
+    if (!competence) return notify('Selecione um mês fechado.', 'error')
+    const label = competenceLabel(competence)
+    if (!window.confirm(`Recalcular o retrato do WinThor de todas as cargas lançadas em ${label}? Os dados preenchidos pelos usuários serão preservados.`)) return
+    setStarting(true)
+    try {
+      const job = await api('/api/admin/recalculos-cargas', { method: 'POST', body: JSON.stringify({ competencia: competence }) })
+      setCurrent({ ...job, totalCargas: 0, cargasProcessadas: 0, cargasAtualizadas: 0, cargasSemAlteracao: 0, cargasComErro: 0 })
+      notify(`Recálculo de ${label} iniciado.`)
+      await load(true)
+    } catch (error) { notify(error.message, 'error') } finally { setStarting(false) }
+  }
+  if (loading) return <Loading/>
+  return <div className="recalculation-layout">
+    <section className="panel recalculation-head">
+      <div><span className="recalculation-icon"><RefreshCw size={22}/></span><div><h2>Recálculo de cargas</h2><p>Atualize, para um mês fechado, o retrato completo recebido do WinThor. Datas, quilometragem, despesas e demais campos informados pelos usuários não serão alterados.</p></div></div>
+      <div className="recalculation-action"><label><span>Mês fechado</span><input type="month" max={previousClosedMonth()} value={competence} onChange={(event) => setCompetence(event.target.value)} disabled={Boolean(current)}/></label><button className="primary" onClick={start} disabled={starting || Boolean(current)}><RefreshCw size={17} className={current ? 'spin' : ''}/>{starting ? 'Iniciando...' : current ? 'Processando...' : 'Recalcular cargas'}</button></div>
+    </section>
+    {current && <section className="panel recalculation-progress">
+      <header><div><strong>{competenceLabel(current.competencia)}</strong><span>{processed} de {total || '—'} carga(s)</span></div><span className="recalculation-status processing"><RefreshCw size={14} className="spin"/> Em processamento</span></header>
+      <div className="progress-track"><span style={{ width: `${progress}%` }}/></div>
+      <div className="recalculation-counts"><span><strong>{progress}%</strong> concluído</span><span><strong>{current.cargasAtualizadas || 0}</strong> atualizadas</span><span><strong>{current.cargasSemAlteracao || 0}</strong> sem alteração</span><span><strong>{current.cargasComErro || 0}</strong> com erro</span></div>
+      <p>Você pode sair desta página. O processamento continuará no servidor.</p>
+    </section>}
+    <section className="panel recalculation-history">
+      <header><div><h2>Últimos recálculos</h2><p>Resumo das atualizações executadas pelo administrador.</p></div><button className="secondary compact" onClick={() => load()}><RefreshCw size={15}/> Atualizar</button></header>
+      {history.length ? <div className="recalculation-list">{history.map((job) => <article key={job.id}>
+        <div className={`recalculation-state ${job.status.toLowerCase()}`}>{job.status === 'CONCLUIDO' ? <CheckCircle2 size={19}/> : job.status === 'PROCESSANDO' ? <RefreshCw size={19} className="spin"/> : <AlertTriangle size={19}/>}</div>
+        <div className="recalculation-main"><div><strong>{competenceLabel(job.competencia)}</strong><span className={`recalculation-status ${job.status.toLowerCase()}`}>{recalculationStatus[job.status] || job.status}</span></div><p>{job.cargasProcessadas} processada(s) · {job.cargasAtualizadas} atualizada(s) · {job.cargasSemAlteracao} sem alteração · {job.cargasComErro} com erro</p><small>Iniciado por {job.usuarioNome} em {dateTime(job.iniciadoEm)}{job.concluidoEm ? ` · concluído em ${dateTime(job.concluidoEm)}` : ''}</small>{job.erro && <em>{job.erro}</em>}</div>
+        <RecalculationResult job={job}/>
+        {job.resumo?.erros?.length > 0 && <details><summary>Ver {job.resumo.erros.length} erro(s)</summary><ul>{job.resumo.erros.map((item) => <li key={`${job.id}-${item.numeroCarga}`}>Carga #{item.numeroCarga}: {item.mensagem}</li>)}</ul></details>}
+      </article>)}</div> : <Empty title="Nenhum recálculo executado" text="Escolha um mês fechado para iniciar o primeiro recálculo."/>}
+    </section>
+  </div>
+}
+
 export default function CentrosCustoPage({ user, notify, onChanged }) {
   const [section, setSection] = useState('centros')
   return <>
-    <div className="page-heading"><div><span className="eyebrow blue">ESTRUTURA</span><h1>Configurações</h1><p>Gerencie centros de custo e a disponibilidade do catálogo contábil.</p></div></div>
-    <div className="settings-tabs"><button className={section === 'centros' ? 'active' : ''} onClick={() => setSection('centros')}><Building2 size={17}/> Centros de custo</button>{user.podeAdministrar && <button className={section === 'catalogos' ? 'active' : ''} onClick={() => setSection('catalogos')}><Database size={17}/> Grupos e contas</button>}</div>
-    {section === 'centros' ? <CostCenters notify={notify} onChanged={onChanged}/> : user.podeAdministrar && <CatalogSettings notify={notify} onChanged={onChanged}/>}
+    <div className="page-heading"><div><span className="eyebrow blue">ESTRUTURA</span><h1>Configurações</h1><p>Gerencie centros de custo, o catálogo contábil e as rotinas administrativas.</p></div></div>
+    <div className="settings-tabs"><button className={section === 'centros' ? 'active' : ''} onClick={() => setSection('centros')}><Building2 size={17}/> Centros de custo</button>{user.podeAdministrar && <button className={section === 'catalogos' ? 'active' : ''} onClick={() => setSection('catalogos')}><Database size={17}/> Grupos e contas</button>}{user.podeAdministrar && <button className={section === 'recalculo' ? 'active' : ''} onClick={() => setSection('recalculo')}><RefreshCw size={17}/> Recálculo de cargas</button>}</div>
+    {section === 'centros' ? <CostCenters notify={notify} onChanged={onChanged}/> : section === 'catalogos' && user.podeAdministrar ? <CatalogSettings notify={notify} onChanged={onChanged}/> : section === 'recalculo' && user.podeAdministrar ? <CargoRecalculation notify={notify}/> : null}
   </>
 }

@@ -201,6 +201,28 @@ create table if not exists auditoria_lancamentos_cargas (
 create index if not exists idx_auditoria_lancamentos_cargas
   on auditoria_lancamentos_cargas(numero_lancamento_carga, ocorrido_em desc);
 
+create table if not exists recalculos_cargas (
+  id bigserial primary key,
+  competencia date not null check (competencia = date_trunc('month', competencia)::date),
+  status varchar(30) not null check (status in ('PROCESSANDO','CONCLUIDO','CONCLUIDO_COM_ERROS','FALHOU')),
+  total_cargas integer not null default 0 check (total_cargas >= 0),
+  cargas_processadas integer not null default 0 check (cargas_processadas >= 0),
+  cargas_atualizadas integer not null default 0 check (cargas_atualizadas >= 0),
+  cargas_sem_alteracao integer not null default 0 check (cargas_sem_alteracao >= 0),
+  cargas_com_erro integer not null default 0 check (cargas_com_erro >= 0),
+  usuario_id bigint not null references usuarios(id),
+  usuario_nome varchar(120) not null,
+  resumo jsonb not null default '{}'::jsonb,
+  erro text,
+  iniciado_em timestamptz not null default now(),
+  concluido_em timestamptz
+);
+
+create unique index if not exists uq_recalculos_cargas_processando
+  on recalculos_cargas ((1)) where status = 'PROCESSANDO';
+create index if not exists idx_recalculos_cargas_iniciado
+  on recalculos_cargas(iniciado_em desc);
+
 create table if not exists auditoria_lancamentos (
   id bigserial primary key,
   numero_lancamento bigint not null,
