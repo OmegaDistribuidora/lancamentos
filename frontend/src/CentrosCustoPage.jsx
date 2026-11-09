@@ -129,7 +129,7 @@ const recalculationStatus = {
 }
 
 function RecalculationResult({ job }) {
-  if (!job?.resumo) return null
+  if (!job?.resumo || job.resumo.vendaDepois === undefined) return null
   const result = job.resumo
   const items = [
     ['Venda total', result.vendaAntes, result.vendaDepois],
@@ -185,7 +185,7 @@ function CargoRecalculation({ notify }) {
       <div className="recalculation-action"><label><span>Mês fechado</span><input type="month" max={previousClosedMonth()} value={competence} onChange={(event) => setCompetence(event.target.value)} disabled={Boolean(current)}/></label><button className="primary" onClick={start} disabled={starting || Boolean(current)}><RefreshCw size={17} className={current ? 'spin' : ''}/>{starting ? 'Iniciando...' : current ? 'Processando...' : 'Recalcular cargas'}</button></div>
     </section>
     {current && <section className="panel recalculation-progress">
-      <header><div><strong>{competenceLabel(current.competencia)}</strong><span>{processed} de {total || '—'} carga(s)</span></div><span className="recalculation-status processing"><RefreshCw size={14} className="spin"/> Em processamento</span></header>
+      <header><div><strong>{competenceLabel(current.competencia)}</strong><span>{processed} de {total || '—'} carga(s)</span></div><span className="recalculation-status processando"><RefreshCw size={14} className="spin"/> Em processamento</span></header>
       <div className="progress-track"><span style={{ width: `${progress}%` }}/></div>
       <div className="recalculation-counts"><span><strong>{progress}%</strong> concluído</span><span><strong>{current.cargasAtualizadas || 0}</strong> atualizadas</span><span><strong>{current.cargasSemAlteracao || 0}</strong> sem alteração</span><span><strong>{current.cargasComErro || 0}</strong> com erro</span></div>
       <p>Você pode sair desta página. O processamento continuará no servidor.</p>
