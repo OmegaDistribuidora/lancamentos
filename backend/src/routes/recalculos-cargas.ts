@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { isAdmin } from '../auth.js';
+import { isPrivileged } from '../auth.js';
 import { pool } from '../db/pool.js';
 import { badRequest, forbidden, HttpError, positiveId } from '../http.js';
 import type { AuthUser } from '../types.js';
@@ -178,13 +178,13 @@ async function runRecalculation(jobId: number, competence: string, user: AuthUse
 
 export async function registerCargoRecalculationRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/admin/recalculos-cargas', async (request) => {
-    if (!isAdmin(request.authUser!)) forbidden('Apenas o Admin pode recalcular cargas.');
+    if (!isPrivileged(request.authUser!)) forbidden('Apenas Admin, Gerente administrativo e Diretoria podem recalcular cargas.');
     const { rows } = await pool.query(`${JOB_SELECT} order by iniciado_em desc limit 12`);
     return { atual: rows.find((item) => item.status === 'PROCESSANDO') || null, historico: rows };
   });
 
   app.get('/api/admin/recalculos-cargas/:id', async (request) => {
-    if (!isAdmin(request.authUser!)) forbidden('Apenas o Admin pode recalcular cargas.');
+    if (!isPrivileged(request.authUser!)) forbidden('Apenas Admin, Gerente administrativo e Diretoria podem recalcular cargas.');
     const id = positiveId((request.params as { id: string }).id,'Recálculo');
     const { rows } = await pool.query(`${JOB_SELECT} where id=$1`, [id]);
     if (!rows[0]) throw new HttpError(404,'Recálculo não encontrado.');
@@ -193,7 +193,7 @@ export async function registerCargoRecalculationRoutes(app: FastifyInstance): Pr
 
   app.post('/api/admin/recalculos-cargas', async (request, reply) => {
     const user = request.authUser!;
-    if (!isAdmin(user)) forbidden('Apenas o Admin pode recalcular cargas.');
+    if (!isPrivileged(user)) forbidden('Apenas Admin, Gerente administrativo e Diretoria podem recalcular cargas.');
     const competence = closedCompetence((request.body as { competencia?: unknown } | undefined)?.competencia);
     await pool.query(`update recalculos_cargas set status='FALHOU',erro='Processamento interrompido antes da conclusão.',concluido_em=now()
       where status='PROCESSANDO' and iniciado_em < now() - interval '2 hours'`);

@@ -191,7 +191,7 @@ function CargoRecalculation({ notify }) {
       <p>Você pode sair desta página. O processamento continuará no servidor.</p>
     </section>}
     <section className="panel recalculation-history">
-      <header><div><h2>Últimos recálculos</h2><p>Resumo das atualizações executadas pelo administrador.</p></div><button className="secondary compact" onClick={() => load()}><RefreshCw size={15}/> Atualizar</button></header>
+      <header><div><h2>Últimos recálculos</h2><p>Resumo das atualizações executadas pelos perfis autorizados.</p></div><button className="secondary compact" onClick={() => load()}><RefreshCw size={15}/> Atualizar</button></header>
       {history.length ? <div className="recalculation-list">{history.map((job) => <article key={job.id}>
         <div className={`recalculation-state ${job.status.toLowerCase()}`}>{job.status === 'CONCLUIDO' ? <CheckCircle2 size={19}/> : job.status === 'PROCESSANDO' ? <RefreshCw size={19} className="spin"/> : <AlertTriangle size={19}/>}</div>
         <div className="recalculation-main"><div><strong>{competenceLabel(job.competencia)}</strong><span className={`recalculation-status ${job.status.toLowerCase()}`}>{recalculationStatus[job.status] || job.status}</span></div><p>{job.cargasProcessadas} processada(s) · {job.cargasAtualizadas} atualizada(s) · {job.cargasSemAlteracao} sem alteração · {job.cargasComErro} com erro</p><small>Iniciado por {job.usuarioNome} em {dateTime(job.iniciadoEm)}{job.concluidoEm ? ` · concluído em ${dateTime(job.concluidoEm)}` : ''}</small>{job.erro && <em>{job.erro}</em>}</div>
@@ -206,7 +206,7 @@ export default function CentrosCustoPage({ user, notify, onChanged }) {
   const [section, setSection] = useState('centros')
   return <>
     <div className="page-heading"><div><span className="eyebrow blue">ESTRUTURA</span><h1>Configurações</h1><p>Gerencie centros de custo, o catálogo contábil e as rotinas administrativas.</p></div></div>
-    <div className="settings-tabs"><button className={section === 'centros' ? 'active' : ''} onClick={() => setSection('centros')}><Building2 size={17}/> Centros de custo</button>{user.podeAdministrar && <button className={section === 'catalogos' ? 'active' : ''} onClick={() => setSection('catalogos')}><Database size={17}/> Grupos e contas</button>}{user.podeAdministrar && <button className={section === 'recalculo' ? 'active' : ''} onClick={() => setSection('recalculo')}><RefreshCw size={17}/> Recálculo de cargas</button>}</div>
-    {section === 'centros' ? <CostCenters notify={notify} onChanged={onChanged}/> : section === 'catalogos' && user.podeAdministrar ? <CatalogSettings notify={notify} onChanged={onChanged}/> : section === 'recalculo' && user.podeAdministrar ? <CargoRecalculation notify={notify}/> : null}
+    <div className="settings-tabs"><button className={section === 'centros' ? 'active' : ''} onClick={() => setSection('centros')}><Building2 size={17}/> Centros de custo</button>{user.podeAdministrar && <button className={section === 'catalogos' ? 'active' : ''} onClick={() => setSection('catalogos')}><Database size={17}/> Grupos e contas</button>}{user.podeVerTodos && <button className={section === 'recalculo' ? 'active' : ''} onClick={() => setSection('recalculo')}><RefreshCw size={17}/> Recálculo de cargas</button>}</div>
+    {section === 'centros' ? <CostCenters notify={notify} onChanged={onChanged}/> : section === 'catalogos' && user.podeAdministrar ? <CatalogSettings notify={notify} onChanged={onChanged}/> : section === 'recalculo' && user.podeVerTodos ? <CargoRecalculation notify={notify}/> : null}
   </>
 }
